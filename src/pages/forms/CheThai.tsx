@@ -12,7 +12,7 @@ const dialogues = [
     { text: "Tell me a bit about yourself so we know who's ordering!", expression: "thinking" },
     { text: "Ooh, the best part! How many cups would you like?", expression: "excited" },
     { text: "Almost done! Just review your total and payment instructions.", expression: "happy" },
-    { text: "Yay! Thank you so much for supporting us!", expression: "excited" }
+    { text: "Yay! Thank you so much for supporting us! Share me with a friend!", expression: "excited" }
 ];
 
 const cupPositions = [
