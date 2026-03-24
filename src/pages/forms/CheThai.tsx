@@ -428,8 +428,7 @@ export default function CheThai() {
                                 </svg>
                             </div>
                             <h2 className="text-2xl font-bold text-stone-800 mb-2">Order Received!</h2>
-                            <p className="text-stone-600 mb-8">Thank you for supporting the Cornell Dragon Boat Club. Don't forget to send your payment!</p>
-                            <p className="text-stone-600 mb-8">Venmo <strong>@HilaryKuang</strong> or Zelle <strong>415-307-1306</strong></p>
+                            <p className="text-stone-600 mb-8">Thank you for supporting the Cornell Dragon Boat Club. Don't forget to send your payment! <br> Venmo <strong>@HilaryKuang</strong> or Zelle <strong>415-307-1306</strong></p>
                             <button type="button" onClick={() => window.location.reload()} className="bg-stone-200 text-stone-700 font-bold py-3 px-8 rounded-xl hover:bg-stone-300 transition-colors">Place Another Order</button>
                         </div>
                     </form>
