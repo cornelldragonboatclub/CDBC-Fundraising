@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+.animate-bob {
+    animation: bob 2.5s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+.animate-float {
+    animation: float 3s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+    animation: float 3.5s ease-in-out infinite 1s;
+}
+
+.step-container::-webkit-scrollbar {
+    width: 6px;
+}
+.step-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+.step-container::-webkit-scrollbar-thumb {
+    background-color: #e7e5e4;
+    border-radius: 10px;
+}
+
+.fade-enter {
+    opacity: 0;
+    transform: scale(0.95);
+}
+.fade-enter-active {
+    opacity: 1;
+    transform: scale(1);
+    transition: opacity 300ms, transform 300ms;
+}
