@@ -121,8 +121,10 @@ export default function CheThai() {
         if (navigator.share) {
             try {
                 await navigator.share(shareData);
-            } catch (err) {
-                console.error('Error sharing:', err);
+            } catch (err: any) {
+                if (err.name !== 'AbortError') {
+                    console.error('Error sharing:', err);
+                }
             }
         } else {
             navigator.clipboard.writeText(window.location.href);
@@ -441,20 +443,20 @@ export default function CheThai() {
 
                         {/* Step 4: Success */}
                         <div className="w-full h-full flex-shrink-0 p-4 flex flex-col justify-center items-center step-container text-center">
-                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                                <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-3">
+                                <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
                                 </svg>
                             </div>
                             <h2 className="text-xl font-bold text-stone-800 mb-2">Order Received!</h2>
-                            <p className="text-stone-600 text-sm mb-6">Thank you for supporting the Cornell Dragon Boat Club. Don't forget to send your payment! <br /> <strong>@HilaryKuang</strong> or <strong>415-307-1306</strong></p>
+                            <p className="text-stone-600 text-sm mb-4 leading-snug">Thank you for supporting the Cornell Dragon Boat Club. Don't forget to send your payment! <br /> <strong>@HilaryKuang</strong> or <strong>415-307-1306</strong></p>
                             <button 
                                 type="button" 
                                 onClick={handleShare} 
-                                className="bg-red-600 text-white flex items-center justify-center gap-2 font-bold py-2 px-6 rounded-xl hover:bg-red-700 transition-colors mb-4"
+                                className="bg-red-600 text-white flex items-center justify-center gap-2 font-bold py-2 px-6 rounded-xl hover:bg-red-700 transition-colors mb-3"
                             >
-                                <Share className="w-5 h-5" />
-                                Share Me!
+                                <Share className="w-4 h-4" />
+                                Send me to a friend!
                             </button>
                             <button 
                                 type="button" 
