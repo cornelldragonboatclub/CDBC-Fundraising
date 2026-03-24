@@ -456,7 +456,7 @@ export default function CheThai() {
                                 className="bg-red-600 text-white flex items-center justify-center gap-2 font-bold py-2 px-6 rounded-xl hover:bg-red-700 transition-colors mb-3"
                             >
                                 <Share className="w-4 h-4" />
-                                Send me to a friend!
+                                Share
                             </button>
                             <button 
                                 type="button" 
