@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Home } from 'lucide-react';
+import { Home, Share } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TriangleGrid from '../../components/TriangleGrid';
 import CheThaiCup from '../../components/CheThaiCup';
@@ -109,6 +109,25 @@ export default function CheThai() {
             setCurrentStep(prev => prev - 1);
             setDragonOpacity(1);
         }, 300);
+    };
+
+    const handleShare = async () => {
+        const shareData = {
+            title: 'Cornell Dragon Boat Club - Chè Thái Fundraiser',
+            text: 'Support the Cornell Dragon Boat Club by ordering some delicious Chè Thái!',
+            url: window.location.href,
+        };
+
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+            } catch (err) {
+                console.error('Error sharing:', err);
+            }
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            alert('Link copied to clipboard!'); 
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -421,15 +440,29 @@ export default function CheThai() {
                         </div>
 
                         {/* Step 4: Success */}
-                        <div className="w-full h-full flex-shrink-0 p-6 flex flex-col justify-center items-center step-container text-center">
-                            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
-                                <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-full h-full flex-shrink-0 p-4 flex flex-col justify-center items-center step-container text-center">
+                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                                <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
                                 </svg>
                             </div>
-                            <h2 className="text-2xl font-bold text-stone-800 mb-2">Order Received!</h2>
-                            <p className="text-stone-600 mb-8">Thank you for supporting the Cornell Dragon Boat Club. Don't forget to send your payment! <br /> Venmo <strong>@HilaryKuang</strong> or Zelle <strong>415-307-1306</strong></p>
-                            <button type="button" onClick={() => window.location.reload()} className="bg-stone-200 text-stone-700 font-bold py-3 px-8 rounded-xl hover:bg-stone-300 transition-colors">Place Another Order</button>
+                            <h2 className="text-xl font-bold text-stone-800 mb-2">Order Received!</h2>
+                            <p className="text-stone-600 text-sm mb-6">Thank you for supporting the Cornell Dragon Boat Club. Don't forget to send your payment! <br /> <strong>@HilaryKuang</strong> or <strong>415-307-1306</strong></p>
+                            <button 
+                                type="button" 
+                                onClick={handleShare} 
+                                className="bg-red-600 text-white flex items-center justify-center gap-2 font-bold py-2 px-6 rounded-xl hover:bg-red-700 transition-colors mb-4"
+                            >
+                                <Share className="w-5 h-5" />
+                                Share Me!
+                            </button>
+                            <button 
+                                type="button" 
+                                onClick={() => window.location.reload()} 
+                                className="text-sm text-stone-500 hover:text-stone-700 underline transition-colors"
+                            >
+                                Need to place another order?
+                            </button>
                         </div>
                     </form>
                 </div>
