@@ -2,6 +2,12 @@
 
 This file tracks the major changes, fixes, and updates made to the Cornell Dragon Boat Club Fundraiser application.
 
+## [2026-04-05] - Form Status Control & UI Updates
+*   **Ingredients List:** Added an ingredients list below the price in the "Your Order" step of the Chè Thái form.
+*   **Form Status API (Read):** Created `/api/form-status.js` to fetch the `isOpen` status of the fundraiser from the `Config` collection in MongoDB. Included `Cache-Control: no-store` headers to prevent stale data.
+*   **Form Status API (Update):** Created `/api/toggle-status.js` to allow admins to toggle the form's open/closed status. Secured the endpoint by requiring an `ADMIN_PASSWORD` match.
+*   **Submission Enforcement:** Updated `/api/submit.js` to check the `Config` collection before processing an order. If the form is marked as closed, the backend now rejects the submission with a 403 Forbidden error.
+
 ## [2026-03-23] - Routing & Admin Dashboard Fixes
 *   **Routing Restoration:** Fixed an issue in `App.tsx` where the Home (`/`) and Admin (`/admin`) routes were accidentally overwritten. Restored the proper routing so all pages (Home, Admin, and Chè Thái form) are accessible.
 *   **Admin Dashboard Visibility:** Updated `Admin.tsx` to pre-populate the `formStats` with the 'che-thai' fundraiser. This ensures the Chè Thái fundraiser card is always visible on the admin dashboard, even when there are 0 sales/submissions, allowing admins to click in and view the empty state.

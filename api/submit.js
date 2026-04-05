@@ -43,6 +43,16 @@ export default async function handler(req, res) {
         }
 
         const db = await connectToDatabase(uri);
+        
+        // Check if form is open
+        const configCollection = db.collection('Config');
+        const formId = data.formId || 'che-thai';
+        const config = await configCollection.findOne({ formId: formId });
+        
+        if (config && config.isOpen === false) {
+            return res.status(403).json({ error: 'Fundraiser is currently closed.' });
+        }
+
         const collection = db.collection('Submissions');
 
         // Insert the order
