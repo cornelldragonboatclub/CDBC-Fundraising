@@ -358,9 +358,12 @@ export default function CheThai() {
                         <div className="w-full h-full flex-shrink-0 p-6 flex flex-col step-container overflow-y-auto">
                             <h2 className="text-xl font-bold text-stone-800 mb-4">Your Order</h2>
                             <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 mb-6 flex items-center justify-between">
-                                <div>
+                                <div className="pr-2">
                                     <h3 className="font-bold text-stone-800">Chè Thái</h3>
                                     <p className="text-sm text-stone-500">$5.00 / cup</p>
+                                    <p className="text-xs text-stone-400 mt-1 leading-tight">
+                                        Ingredients: coconut milk, sugar, grass jelly, agar agar, jackfruit, logan, palm seeds
+                                    </p>
                                 </div>
                                 <div className="flex items-center space-x-3">
                                     <button type="button" onClick={() => setFormData({...formData, quantity: Math.max(0, formData.quantity - 1)})} className="w-8 h-8 rounded-full bg-white border border-stone-300 flex items-center justify-center text-stone-600 hover:bg-stone-100 transition-colors font-bold">-</button>
