@@ -3,8 +3,8 @@
 This document outlines how to set up, run, and deploy the Chè Thái Fundraiser web application.
 
 ## Tech Stack
-*   **Frontend:** HTML5, CSS3 (Tailwind CSS via CDN), Vanilla JavaScript
-*   **Backend:** Vercel Serverless Functions (Node.js)
+*   **Frontend:** React, React Router, Tailwind CSS, Framer Motion
+*   **Backend:** Vercel Serverless Functions (Node.js), Express (for local dev)
 *   **Database:** MongoDB Atlas
 
 ## Prerequisites
@@ -31,9 +31,10 @@ npm install
 ```
 
 ### 3. Set Up Environment Variables
-Create a file named `.env` in the root of your project. Add your MongoDB connection string to this file:
+Create a file named `.env` in the root of your project. Add your MongoDB connection string and Admin Password to this file:
 ```env
 MONGODB_URI=mongodb+srv://<username>:<password>@<cluster-url>/?retryWrites=true&w=majority
+ADMIN_PASSWORD=your_secure_password_here
 ```
 *(Note: Never commit your `.env` file to GitHub. It should be added to your `.gitignore` file.)*
 
@@ -45,9 +46,16 @@ vercel dev
 The CLI will prompt you to link the project to your Vercel account. Once linked, it will start a local server (usually at `http://localhost:3000`).
 
 ## Project Structure
-*   `/index.html`: The main frontend file containing all HTML, Tailwind CSS styling, and JavaScript logic.
-*   `/api/submit.js`: The Vercel Serverless Function that handles form submissions and connects to MongoDB.
-*   `/package.json`: Manages project dependencies (e.g., `mongodb`).
+*   `/src`: The main frontend directory containing React components, pages, and styles.
+    *   `/src/pages/forms/CheThai.tsx`: The main fundraising form.
+    *   `/src/pages/Admin.tsx`: The admin dashboard.
+*   `/api`: Vercel Serverless Functions.
+    *   `/api/submit.js`: Handles form submissions.
+    *   `/api/admin/login.js`: Handles admin authentication.
+    *   `/api/admin/submissions.js`: Fetches submissions for the dashboard.
+    *   `/api/form-status.js`: Fetches the open/closed status of the form.
+    *   `/api/toggle-status.js`: Toggles the open/closed status of the form.
+*   `/server.ts`: Local Express server for testing API routes during development.
 
 ## Deployment
 
@@ -55,7 +63,7 @@ This project is configured to be deployed on Vercel.
 
 1.  **Push to GitHub:** Commit your changes and push them to your connected GitHub repository.
 2.  **Automatic Deployment:** Vercel will automatically detect the push, build the project, and deploy the new version.
-3.  **Environment Variables:** Ensure that your `MONGODB_URI` is set in your Vercel Project Settings -> Environment Variables.
+3.  **Environment Variables:** Ensure that your `MONGODB_URI` and `ADMIN_PASSWORD` are set in your Vercel Project Settings -> Environment Variables.
 
 ## Troubleshooting
 *   **Form Submit Fails Locally:** Ensure your `.env` file is correctly formatted and the MongoDB user has read/write access. Check the terminal running `vercel dev` for backend error logs.

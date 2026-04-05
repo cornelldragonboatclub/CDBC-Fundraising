@@ -3,6 +3,8 @@
 This file tracks the major changes, fixes, and updates made to the Cornell Dragon Boat Club Fundraiser application.
 
 ## [2026-04-05] - Form Status Control & UI Updates
+*   **Admin Dashboard Fix:** Updated the "Orders" metric on the main admin dashboard to reflect the total number of items ordered (sum of quantities) instead of the total number of submissions.
+*   **Server Startup Fix:** Moved static `import` statements for the new API routes to the top level of `server.ts` to resolve a `SyntaxError` that was crashing the local development server.
 *   **Ingredients List:** Added an ingredients list below the price in the "Your Order" step of the Chè Thái form.
 *   **Form Status API (Read):** Created `/api/form-status.js` to fetch the `isOpen` status of the fundraiser from the `Config` collection in MongoDB. Included `Cache-Control: no-store` headers to prevent stale data.
 *   **Form Status API (Update):** Created `/api/toggle-status.js` to allow admins to toggle the form's open/closed status. Secured the endpoint by requiring an `ADMIN_PASSWORD` match.

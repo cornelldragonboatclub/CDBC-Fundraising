@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Download, Trash2, Check, X, Edit3, Save, ArrowLeft, Folder, Users, DollarSign, Home, Trophy, Edit } from 'lucide-react';
+import { Download, Trash2, Check, X, Edit3, Save, ArrowLeft, Folder, Users, DollarSign, Home, Trophy, Edit, Power, PowerOff } from 'lucide-react';
 
 export default function Admin() {
     const [password, setPassword] = useState('');
@@ -16,6 +16,8 @@ export default function Admin() {
     const [editFormData, setEditFormData] = useState<any>({});
     
     const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
+    const [isFormOpen, setIsFormOpen] = useState<boolean | null>(null);
+    const [togglingStatus, setTogglingStatus] = useState(false);
 
     const handleLogin = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
@@ -60,6 +62,59 @@ export default function Admin() {
             }
         } catch (err) {
             console.error(err);
+        }
+    };
+
+    const fetchFormStatus = async () => {
+        try {
+            const res = await fetch('/api/form-status');
+            if (res.ok) {
+                const data = await res.json();
+                setIsFormOpen(data.isOpen);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    useEffect(() => {
+        if (selectedFormId) {
+            fetchFormStatus();
+        }
+    }, [selectedFormId]);
+
+    const handleToggleFormStatus = async () => {
+        if (isFormOpen === null) return;
+        const newStatus = !isFormOpen;
+        const confirmMsg = newStatus 
+            ? 'Are you sure you want to OPEN this fundraiser to the public?' 
+            : 'Are you sure you want to CLOSE this fundraiser? Users will no longer be able to submit orders.';
+        
+        if (!window.confirm(confirmMsg)) return;
+
+        setTogglingStatus(true);
+        try {
+            const res = await fetch('/api/toggle-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    adminPassword: password,
+                    formId: selectedFormId || 'che-thai',
+                    isOpen: newStatus
+                })
+            });
+            
+            if (res.ok) {
+                const data = await res.json();
+                setIsFormOpen(data.isOpen);
+            } else {
+                alert('Failed to toggle form status. Make sure you are logged in correctly.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('An error occurred while toggling form status.');
+        } finally {
+            setTogglingStatus(false);
         }
     };
 
@@ -287,7 +342,7 @@ export default function Admin() {
                                                 <Users size={14} />
                                                 <span className="text-xs font-medium uppercase tracking-wider">Orders</span>
                                             </div>
-                                            <div className="text-2xl font-bold text-stone-800">{stat.count}</div>
+                                            <div className="text-2xl font-bold text-stone-800">{stat.totalOrders}</div>
                                         </div>
                                         <div className="bg-stone-50 p-3 rounded-xl">
                                             <div className="flex items-center space-x-1 text-stone-500 mb-1">
@@ -342,7 +397,7 @@ export default function Admin() {
                         )}
 
                         <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
-                            <div className="p-4 border-b border-stone-200 bg-stone-50 flex items-center">
+                            <div className="p-4 border-b border-stone-200 bg-stone-50 flex items-center justify-between">
                                 <button 
                                     onClick={() => setSelectedFormId(null)}
                                     className="flex items-center space-x-2 text-stone-600 hover:text-stone-900 transition-colors font-medium"
@@ -350,6 +405,21 @@ export default function Admin() {
                                     <ArrowLeft size={18} />
                                     <span>Back to Fundraisers</span>
                                 </button>
+                                
+                                {isFormOpen !== null && (
+                                    <button
+                                        onClick={handleToggleFormStatus}
+                                        disabled={togglingStatus}
+                                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-bold transition-all ${
+                                            isFormOpen 
+                                                ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                                                : 'bg-red-100 text-red-700 hover:bg-red-200'
+                                        } ${togglingStatus ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    >
+                                        {isFormOpen ? <Power size={16} /> : <PowerOff size={16} />}
+                                        <span>{isFormOpen ? 'Form is OPEN (Click to Close)' : 'Form is CLOSED (Click to Open)'}</span>
+                                    </button>
+                                )}
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left border-collapse">

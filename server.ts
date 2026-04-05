@@ -9,6 +9,10 @@ import submissionsHandler from "./api/admin/submissions.js";
 import updateHandler from "./api/admin/update.js";
 // @ts-ignore
 import deleteHandler from "./api/admin/delete.js";
+// @ts-ignore
+import formStatusHandler from "./api/form-status.js";
+// @ts-ignore
+import toggleStatusHandler from "./api/toggle-status.js";
 import path from "path";
 import { fileURLToPath } from 'url';
 
@@ -61,6 +65,24 @@ async function startServer() {
   app.delete("/api/admin/delete", async (req, res) => {
     try {
       await deleteHandler(req, res);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+
+  app.get("/api/form-status", async (req, res) => {
+    try {
+      await formStatusHandler(req, res);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+
+  app.post("/api/toggle-status", async (req, res) => {
+    try {
+      await toggleStatusHandler(req, res);
     } catch (e) {
       console.error(e);
       res.status(500).json({ error: 'Internal Server Error' });
