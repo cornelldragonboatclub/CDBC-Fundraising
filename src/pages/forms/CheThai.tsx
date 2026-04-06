@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import TriangleGrid from '../../components/TriangleGrid';
 import CheThaiCup from '../../components/CheThaiCup';
 
-const PRICE_PER_CUP = 5;
+const PRICE_PER_CUP = 6;
 
 const dialogues = [
     { text: "Hi! I'm here to help you order some delicious Chè Thái!", expression: "happy" },
@@ -413,7 +413,7 @@ export default function CheThai() {
                                     <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 mb-6 flex items-center justify-between">
                                         <div className="pr-2">
                                             <h3 className="font-bold text-stone-800">Chè Thái</h3>
-                                            <p className="text-sm text-stone-500">$5.00 / cup</p>
+                                            <p className="text-sm text-stone-500">$6.00 / cup</p>
                                             <p className="text-xs text-stone-400 mt-1 leading-tight">
                                                 Ingredients: coconut milk, sugar, agar agar, jackfruit, logan, palm seeds, tapioca
                                             </p>
