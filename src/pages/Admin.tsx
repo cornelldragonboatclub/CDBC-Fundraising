@@ -463,7 +463,7 @@ export default function Admin() {
                                                         <td className="p-4 text-sm">
                                                             <div className="flex items-center space-x-2 mb-1">
                                                                 <span className="text-stone-400 w-8">Qty:</span>
-                                                                <input type="number" className="border border-stone-300 rounded px-2 py-1 text-sm w-16 outline-none focus:border-red-500" value={editFormData.quantity || 0} onChange={e => setEditFormData({...editFormData, quantity: Number(e.target.value), totalCost: Number(e.target.value) * 5})} />
+                                                                <input type="number" className="border border-stone-300 rounded px-2 py-1 text-sm w-16 outline-none focus:border-red-500" value={editFormData.quantity || 0} onChange={e => setEditFormData({...editFormData, quantity: Number(e.target.value), totalCost: Number(e.target.value) * 6})} />
                                                             </div>
                                                             <div className="flex items-center space-x-2">
                                                                 <span className="text-stone-400 w-8">Total:</span>
