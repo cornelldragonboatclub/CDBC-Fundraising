@@ -415,7 +415,7 @@ export default function CheThai() {
                                             <h3 className="font-bold text-stone-800">Chè Thái</h3>
                                             <p className="text-sm text-stone-500">$5.00 / cup</p>
                                             <p className="text-xs text-stone-400 mt-1 leading-tight">
-                                                Ingredients: coconut milk, sugar, grass jelly, agar agar, jackfruit, logan, palm seeds
+                                                Ingredients: coconut milk, sugar, agar agar, jackfruit, logan, palm seeds, tapioca
                                             </p>
                                         </div>
                                         <div className="flex items-center space-x-3">
