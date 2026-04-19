@@ -1,8 +1,46 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Lock } from 'lucide-react';
+import { Lock, History } from 'lucide-react';
 
 export default function Home() {
+  const [isCheThaiOpen, setIsCheThaiOpen] = useState<boolean | null>(null);
+  const [isOnigiriOpen, setIsOnigiriOpen] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    // Fetch statuses
+    Promise.all([
+      fetch('/api/form-status?formId=che-thai').then(res => res.json()),
+      fetch('/api/form-status?formId=onigiri-tarts').then(res => res.json())
+    ]).then(([cheThai, onigiri]) => {
+      setIsCheThaiOpen(cheThai.isOpen);
+      setIsOnigiriOpen(onigiri.isOpen);
+    }).catch(err => {
+      console.error('Error fetching form statuses:', err);
+      if (isCheThaiOpen === null) setIsCheThaiOpen(true);
+      if (isOnigiriOpen === null) setIsOnigiriOpen(true);
+    });
+  }, []);
+
+  const fundraisers = [
+    {
+      id: 'onigiri-tarts',
+      title: 'Onigiri & Egg Tarts',
+      pickup: 'April 28, 2026 @ Willard Straight Hall',
+      path: '/onigiri-tarts',
+      isOpen: isOnigiriOpen
+    },
+    {
+      id: 'che-thai',
+      title: 'Chè Thái Fundraiser',
+      pickup: 'April 10, 2026 @ Willard Straight Hall',
+      path: '/che-thai',
+      isOpen: isCheThaiOpen
+    }
+  ];
+
+  const activeFundraisers = fundraisers.filter(f => f.isOpen === true);
+  const pastFundraisers = fundraisers.filter(f => f.isOpen === false);
+
   return (
     <div className="bg-stone-50 text-stone-800 font-sans antialiased min-h-screen flex flex-col items-center py-12 px-4 relative">
       <Link 
@@ -41,29 +79,65 @@ export default function Home() {
           <p className="text-lg text-stone-500">Support our team through our fundraisers!</p>
         </div>
 
-        <div className="space-y-10">
+        <div className="space-y-12">
           {/* Active Fundraisers */}
           <section>
-            <h2 className="text-xl font-bold text-stone-800 mb-4 flex items-center">
+            <h2 className="text-xl font-bold text-stone-800 mb-6 flex items-center">
               <span className="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
               Active Fundraisers
             </h2>
-            <div className="grid gap-4">
-              <Link 
-                to="/che-thai" 
-                className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 hover:shadow-md hover:border-red-200 transition-all group flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
-              >
-                <div>
-                  <h3 className="text-lg font-bold text-stone-900 group-hover:text-red-600 transition-colors">Chè Thái Fundraiser</h3>
-                  <p className="text-stone-500 text-sm mt-1">Pickup: April 10, 2026 @ Willard Straight Hall</p>
-                </div>
-                <div className="bg-red-50 text-red-600 px-5 py-2.5 rounded-xl font-bold text-sm group-hover:bg-red-600 group-hover:text-white transition-colors w-full sm:w-auto text-center">
-                  Order Now
-                </div>
-              </Link>
-            </div>
+            
+            {activeFundraisers.length > 0 ? (
+              <div className="grid gap-4">
+                {activeFundraisers.map(f => (
+                  <Link 
+                    key={f.id}
+                    to={f.path} 
+                    className="bg-white p-6 rounded-2xl shadow-sm border border-stone-200 hover:shadow-md hover:border-red-200 transition-all group flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+                  >
+                    <div>
+                      <h3 className="text-lg font-bold text-stone-900 group-hover:text-red-600 transition-colors">{f.title}</h3>
+                      <p className="text-stone-500 text-sm mt-1">Pickup: {f.pickup}</p>
+                    </div>
+                    <div className="bg-red-50 text-red-600 px-5 py-2.5 rounded-xl font-bold text-sm group-hover:bg-red-600 group-hover:text-white transition-colors w-full sm:w-auto text-center">
+                      Order Now
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white/50 border border-dashed border-stone-300 rounded-2xl p-10 text-center">
+                <p className="text-stone-500 italic">There are currently no active fundraisers.</p>
+              </div>
+            )}
           </section>
 
+          {/* Past Fundraisers */}
+          {pastFundraisers.length > 0 && (
+            <section>
+              <h2 className="text-xl font-bold text-stone-800 mb-6 flex items-center">
+                <History size={20} className="mr-2 text-stone-400" />
+                Past Fundraisers
+              </h2>
+              <div className="grid gap-4">
+                {pastFundraisers.map(f => (
+                  <Link 
+                    key={f.id}
+                    to={f.path} 
+                    className="bg-stone-50 p-6 rounded-2xl border border-stone-200 hover:bg-white hover:border-stone-300 transition-all group flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 opacity-75 hover:opacity-100"
+                  >
+                    <div>
+                      <h3 className="text-lg font-bold text-stone-600 group-hover:text-stone-800 transition-colors">{f.title}</h3>
+                      <p className="text-stone-400 text-sm mt-1">Completed: {f.pickup.split('@')[0]}</p>
+                    </div>
+                    <div className="bg-stone-200 text-stone-500 px-5 py-2.5 rounded-xl font-bold text-sm w-full sm:w-auto text-center">
+                      Closed
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       </div>
     </div>

@@ -35,7 +35,8 @@ export default async function handler(req, res) {
         const configCollection = db.collection('Config');
 
         // Check for the specific form config
-        let config = await configCollection.findOne({ formId: 'che-thai' });
+        const formId = req.query.formId || 'che-thai';
+        let config = await configCollection.findOne({ formId });
         
         if (!config) {
             // If it doesn't exist yet, default to open

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Download, Trash2, Check, X, Edit3, Save, ArrowLeft, Folder, Users, DollarSign, Home, Trophy, Edit, Power, PowerOff } from 'lucide-react';
+import { Download, Trash2, Check, X, Edit3, Save, ArrowLeft, Folder, Users, DollarSign, Home, Trophy, Edit, Power, PowerOff, ListFilter, ArrowUpDown } from 'lucide-react';
 
 export default function Admin() {
     const [password, setPassword] = useState('');
@@ -18,6 +18,13 @@ export default function Admin() {
     const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
     const [isFormOpen, setIsFormOpen] = useState<boolean | null>(null);
     const [togglingStatus, setTogglingStatus] = useState(false);
+
+    // Sorting states
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({
+        key: 'createdAt',
+        direction: 'desc'
+    });
+    const [showSortMenu, setShowSortMenu] = useState(false);
 
     const handleLogin = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
@@ -186,6 +193,38 @@ export default function Admin() {
     const filteredSubmissions = selectedFormId 
         ? submissions.filter(s => (s.formId || 'che-thai') === selectedFormId)
         : [];
+
+    const sortedSubmissions = useMemo(() => {
+        const list = [...filteredSubmissions];
+        if (sortConfig.key) {
+            list.sort((a, b) => {
+                let aVal = a[sortConfig.key];
+                let bVal = b[sortConfig.key];
+
+                // Special handling for booleans
+                if (typeof aVal === 'boolean') {
+                    aVal = aVal ? 1 : 0;
+                    bVal = bVal ? 1 : 0;
+                }
+
+                // Null handling
+                if (aVal === null || aVal === undefined) aVal = '';
+                if (bVal === null || bVal === undefined) bVal = '';
+
+                if (typeof aVal === 'string' && typeof bVal === 'string') {
+                    const comparison = aVal.localeCompare(bVal);
+                    return sortConfig.direction === 'asc' ? comparison : -comparison;
+                }
+
+                if (sortConfig.direction === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+        }
+        return list;
+    }, [filteredSubmissions, sortConfig]);
 
     const activeStats = useMemo(() => {
         if (!selectedFormId) return null;
@@ -406,20 +445,69 @@ export default function Admin() {
                                     <span>Back to Fundraisers</span>
                                 </button>
                                 
-                                {isFormOpen !== null && (
-                                    <button
-                                        onClick={handleToggleFormStatus}
-                                        disabled={togglingStatus}
-                                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-bold transition-all ${
-                                            isFormOpen 
-                                                ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                                                : 'bg-red-100 text-red-700 hover:bg-red-200'
-                                        } ${togglingStatus ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                    >
-                                        {isFormOpen ? <Power size={16} /> : <PowerOff size={16} />}
-                                        <span>{isFormOpen ? 'Form is OPEN (Click to Close)' : 'Form is CLOSED (Click to Open)'}</span>
-                                    </button>
-                                )}
+                                <div className="flex items-center space-x-3">
+                                    {/* Sorting Selection */}
+                                    <div className="relative">
+                                        <button 
+                                            onClick={() => setShowSortMenu(!showSortMenu)}
+                                            className="flex items-center space-x-2 bg-white border border-stone-200 px-4 py-2 rounded-lg text-stone-700 hover:bg-stone-50 transition-all font-medium shadow-sm"
+                                        >
+                                            <ListFilter size={18} />
+                                            <span>Sort</span>
+                                        </button>
+
+                                        {showSortMenu && (
+                                            <>
+                                                <div className="fixed inset-0 z-40" onClick={() => setShowSortMenu(false)}></div>
+                                                <div className="absolute right-0 mt-2 w-48 bg-white border border-stone-200 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                                                    <div className="p-2 space-y-1">
+                                                        <p className="px-3 py-2 text-xs font-bold text-stone-400 uppercase tracking-widest">Sort By</p>
+                                                        {[
+                                                            { label: 'Name', key: 'fullName' },
+                                                            { label: 'Paid', key: 'paid' },
+                                                            { label: 'Picked Up', key: 'pickedUp' },
+                                                            { label: 'Date', key: 'createdAt' }
+                                                        ].map((opt) => (
+                                                            <button
+                                                                key={opt.key}
+                                                                onClick={() => {
+                                                                    setSortConfig(prev => ({
+                                                                        key: opt.key,
+                                                                        direction: prev.key === opt.key ? (prev.direction === 'asc' ? 'desc' : 'asc') : 'asc'
+                                                                    }));
+                                                                    setShowSortMenu(false);
+                                                                }}
+                                                                className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between ${
+                                                                    sortConfig.key === opt.key ? 'bg-red-50 text-red-600 font-bold' : 'text-stone-600 hover:bg-stone-50'
+                                                                }`}
+                                                            >
+                                                                <span>{opt.label}</span>
+                                                                {sortConfig.key === opt.key && (
+                                                                    <ArrowUpDown size={14} className={sortConfig.direction === 'desc' ? 'rotate-180 transition-transform' : 'transition-transform'} />
+                                                                )}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {isFormOpen !== null && (
+                                        <button
+                                            onClick={handleToggleFormStatus}
+                                            disabled={togglingStatus}
+                                            className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-bold transition-all ${
+                                                isFormOpen 
+                                                    ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                                                    : 'bg-red-100 text-red-700 hover:bg-red-200'
+                                            } ${togglingStatus ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        >
+                                            {isFormOpen ? <Power size={16} /> : <PowerOff size={16} />}
+                                            <span>{isFormOpen ? 'Form is OPEN' : 'Form is CLOSED'}</span>
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left border-collapse">
@@ -437,7 +525,7 @@ export default function Admin() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-stone-100">
-                                        {filteredSubmissions.map((sub) => {
+                                        {sortedSubmissions.map((sub) => {
                                             const isEditing = editingRowId === sub._id;
                                             
                                             if (isEditing) {
@@ -593,7 +681,7 @@ export default function Admin() {
                                                 </tr>
                                             );
                                         })}
-                                        {filteredSubmissions.length === 0 && (
+                                        {sortedSubmissions.length === 0 && (
                                             <tr>
                                                 <td colSpan={9} className="p-8 text-center text-stone-500">
                                                     No submissions found for this fundraiser.

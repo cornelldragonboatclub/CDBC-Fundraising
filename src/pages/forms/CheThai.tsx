@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Home, Share } from 'lucide-react';
+import { Home, Share, Copy, Check, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TriangleGrid from '../../components/TriangleGrid';
 import CheThaiCup from '../../components/CheThaiCup';
@@ -58,6 +58,7 @@ export default function CheThai() {
     const [errors, setErrors] = useState<Record<string, boolean>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [dragonOpacity, setDragonOpacity] = useState(1);
+    const [copied, setCopied] = useState(false);
 
     const d = dialogues[currentStep];
     const displayCups = currentStep < 2 ? 2 : formData.quantity;
@@ -149,6 +150,12 @@ export default function CheThai() {
             navigator.clipboard.writeText(window.location.href);
             alert('Link copied to clipboard!'); 
         }
+    };
+
+    const handleCopy = (text: string) => {
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -467,9 +474,25 @@ export default function CheThai() {
                                         </div>
                                     </div>
                                     <div className="space-y-3 text-sm text-stone-700 mb-6 bg-stone-50 p-4 rounded-xl border border-stone-200">
-                                        <p><strong>Step 1:</strong> Venmo <strong>@HilaryKuang</strong> or Zelle <strong>415-307-1306</strong> for your order to be purchased! If you don't have Venmo or Zelle, stop by our table and order in-person with cash.</p>
+                                        <p>
+                                            <strong>Step 1:</strong> Pay via Venmo 
+                                            <a href="https://venmo.com/u/hilarykuang" target="_blank" rel="noopener noreferrer" className="text-red-600 font-bold hover:underline mx-1 inline-flex items-center gap-0.5">
+                                                @HilaryKuang <ExternalLink size={12} />
+                                            </a>
+                                            or Zelle 
+                                            <span className="inline-flex items-center bg-white px-2 py-1 rounded border border-stone-200 ml-1">
+                                                <strong className="mr-1">415-307-1306</strong>
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => handleCopy("415-307-1306")}
+                                                    className="p-1 hover:bg-stone-100 rounded transition-colors"
+                                                >
+                                                    {copied ? <Check size={12} className="text-green-600" /> : <Copy size={12} />}
+                                                </button>
+                                            </span>
+                                            for your order to be purchased! If you don't have Venmo or Zelle, stop by our table and order in-person with cash.
+                                        </p>
                                         <p><strong>Step 2:</strong> Write <span className="bg-yellow-100 px-1 rounded font-mono">Dragonboat + {formData.quantity} cups + {formData.netId || 'netID'}</span> in the payment subject line/description.</p>
-                                        <p><strong>Step 3:</strong> You will receive an email regarding pickup once we receive your payment!</p>
                                         <p className="text-xs text-stone-500 mt-2 pt-2 border-t border-stone-200">Contact: Reach out to en329@cornell.edu with any questions!</p>
                                     </div>
                                     <label className={`flex items-start space-x-3 cursor-pointer p-3 border ${errors.pickupAgreement ? 'border-red-500 bg-red-50' : 'border-stone-200'} rounded-xl hover:bg-stone-50 transition-colors`}>
@@ -505,7 +528,17 @@ export default function CheThai() {
                                         </svg>
                                     </div>
                                     <h2 className="text-xl font-bold text-stone-800 mb-2">Order Received!</h2>
-                                    <p className="text-stone-600 text-sm mb-4 leading-snug">Thank you for supporting the Cornell Dragon Boat Club. Don't forget to send your payment! <br /> <strong>@HilaryKuang</strong> or <strong>415-307-1306</strong></p>
+                                    <p className="text-stone-600 text-sm mb-4 leading-snug">
+                                        Thank you for supporting the Cornell Dragon Boat Club. Don't forget to send your payment to 
+                                        <a href="https://venmo.com/u/hilarykuang" target="_blank" rel="noopener noreferrer" className="text-red-600 font-bold hover:underline mx-1">@HilaryKuang</a> 
+                                        or Zelle 
+                                        <span className="inline-flex items-center gap-1 mx-1">
+                                            <strong>415-307-1306</strong>
+                                            <button onClick={() => handleCopy("415-307-1306")} className="p-1 hover:bg-stone-100 rounded">
+                                                {copied ? <Check size={12} className="text-green-600" /> : <Copy size={12} />}
+                                            </button>
+                                        </span>
+                                    </p>
                                     <button 
                                         type="button" 
                                         onClick={handleShare} 

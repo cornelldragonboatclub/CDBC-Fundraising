@@ -25,9 +25,12 @@ export default async function handler(req, res) {
 
     try {
         const data = req.body;
+        const formId = data.formId || 'che-thai';
 
-        // Basic validation
-        if (!data.fullName || !data.email || !data.netId || !data.quantity) {
+        // Basic validation - NetID is only required for che-thai
+        const isNetIdRequired = formId === 'che-thai';
+        
+        if (!data.fullName || !data.email || (isNetIdRequired && !data.netId)) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
@@ -46,7 +49,6 @@ export default async function handler(req, res) {
         
         // Check if form is open
         const configCollection = db.collection('Config');
-        const formId = data.formId || 'che-thai';
         const config = await configCollection.findOne({ formId: formId });
         
         if (config && config.isOpen === false) {
