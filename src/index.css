@@ -26,6 +26,14 @@
     animation: float 3.5s ease-in-out infinite 1s;
 }
 
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
 .step-container::-webkit-scrollbar {
     width: 6px;
 }

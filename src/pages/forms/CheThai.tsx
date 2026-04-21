@@ -67,7 +67,7 @@ export default function CheThai() {
         // Fetch form status
         const checkFormStatus = async () => {
             try {
-                const res = await fetch('/api/form-status');
+                const res = await fetch('/api/form-status?formId=che-thai');
                 if (res.ok) {
                     const data = await res.json();
                     setIsFormOpen(data.isOpen);

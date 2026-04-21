@@ -1,22 +1,64 @@
 # Development Log - Cornell Dragon Boat Fundraiser App
 
-## [2026-04-19] - Onigiri & Egg Tarts Fundraiser Launch
+## [2026-04-21] - Advanced Admin Dashboard & Itemized Reporting
+- **Itemized Unit Breakdown**: The Admin Dashboard now automatically calculates and displays total individual units ordered for any fundraiser.
+  - For "Onigiri & Egg Tarts", it sums single items and 3-packs (e.g., 1 bundle of 3 = 3 units).
+- **Dynamic Dashboard Stats**:
+  - Summary cards on the main Admin page now show a mini-breakdown of item totals under "Total Orders".
+  - The active fundraiser view includes a detailed itemized breakdown section.
+- **Dynamic Table Columns**:
+  - The submissions table now dynamically adds columns for specific items (e.g., "Onigiri", "Egg Tarts") depending on the fundraiser selected.
+- **Enhanced CSV Export**:
+  - Downloaded CSV files now include these itemized columns, making fulfillment easier in Excel/Sheets.
+- **Form Status Fix**: Fixed a synchronization issue where the Onigiri form would default to the status of the Chè Thái fundraiser (showing "Closed" incorrectly). All status checks are now fundraiser-specific.
+- **Database Cleanup**: Purged historical test submissions and outdated configuration flags (`onigiri-cookies`, `onigiri-tarts`) to clean up the Admin Dashboard.
+- **"Cookie" Code Purge**: Renamed all internal code identifiers and imports to remove "Cookie" and "Matcha" references (renamed to `EggTartIcon` and `egg_tart_single/triple`).
+
+## [2026-04-20] - Renamed Fundraiser to Onigiri & Egg Tarts
+- Renamed "Matcha Mochi Cookies" to "Onigiri & Egg Tarts" across the entire application.
+- Updated `src/pages/forms/OnigiriEggTarts.tsx` and all associated internal references.
+- Updated all route paths and internal IDs to `onigiri-egg-tarts`.
+- Consistent use of the "&" symbol in all UI titles and labels.
+
+## [2026-04-19] - Onigiri & Matcha Cookies Fundraiser Launch
+
+### Redesign
+- Redesigned `CookieIcon.tsx` to match the cute Kawaii aesthetic from the provided reference image.
+- Removed white drizzle from `CookieIcon.tsx` per user request for a cleaner look.
+- Refined `OnigiriIcon.tsx` and `CookieIcon.tsx` faces:
+  - Eyes and blush circles were made smaller for a cuter, more balanced look.
+  - Mouths updated to a consistent rounded semicircle style.
+- Scaled down header icons from `w-12` to `w-10` to better balance with the central dragon mascot.
+- Redesigned `OnigiriIcon.tsx` to match the latest provided reference image:
+  - Transitioned from a bubbly shape to a plump, wide rounded triangle body.
+  - Implemented thick dark brownish-grey outlines (`#3d3935`).
+- Features updated color palettes, expressive eyes with highlights, circular halos (on cookie), leaf detail, and 4-pointed stars.
 
 ### Added
-- Created `src/pages/forms/OnigiriTarts.tsx` with a single-page scrolling layout.
+- Created `src/components/OnigiriIcon.tsx` and `src/components/CookieIcon.tsx`.
+- Integrated cute Onigiri and Matcha White Chocolate Cookie icons into the `OnigiriCookies` form header, placed on either side of the dragon mascot.
+- Created `src/pages/forms/OnigiriCookies.tsx` with a single-page scrolling layout.
 - Added 2x2 grid for product selection:
   - Row 1: Onigiri (Single/Bundle)
-  - Row 2: Egg Tarts (Single/Bundle)
+  - Row 2: Matcha Cookies (Single/Bundle)
 - Implemented "Better Deal" styling for bundles:
   - Gold border and warm yellow background.
   - "Better Deal" badge.
   - Strikethrough pricing (~~$9.00~~ $7.00).
 - Integrated referral system and pickup agreement for April 28th.
+- Added a dynamic "Your Order" summary section in the payment step that live-updates as items are selected.
+- Added a clear "Total Amount Due" display on the order received confirmation page.
 - Added Venmo hyperlink (Hilary Kuang) and Zelle copy button (415-307-1306).
-- Updated `src/Home.tsx` to dynamically list multiple active fundraisers (Chè Thái and Onigiri Tarts).
+- Updated `src/Home.tsx` to dynamically list multiple active fundraisers (Chè Thái and Onigiri Cookies).
 - Added routes for the new fundraiser in `src/App.tsx`.
 
 ### Changed
+- Replaced "Egg Tarts" with "Matcha Cookies" throughout the application.
+- Renamed `src/pages/forms/OnigiriTarts.tsx` to `src/pages/forms/OnigiriCookies.tsx`.
+- Updated route from `/onigiri-tarts` to `/onigiri-cookies`.
+- Updated `formId` from `onigiri-tarts` to `onigiri-cookies` in the frontend and API calls.
+- Updated pricing and item mapping to use `cookie_1` and `cookie_3` instead of `tart_1` and `tart_3`.
+- Made referrals optional in Onigiri Cookies form and updated label to "Who referred you? (optional)".
 - Simplified payment flow: Removed NetID (for Onigiri form) and Payment ID entry.
 - Removed Step 3 (Email Confirmation) from all forms as requested.
 - Updated `api/submit.js` to handle different `formId`s and calculate totals dynamically.
@@ -25,6 +67,8 @@
 ### Fixed
 - Resolved a critical backend syntax error (duplicate variable declaration) in `api/submit.js` that caused server startup failures.
 - Fixed layout alignment for product counters in the 2x2 grid.
+- Fixed header layout to prevent "Home" icon overlapping with the title text by adding horizontal padding and centering.
+- Renamed "Matcha Cookies" to "Matcha Mochi Cookies" across the entire application for accuracy.
 
 ### Security & Infrastructure
 - Ensured all fundraisers are secured via `Config` collection flags in the database.

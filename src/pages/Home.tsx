@@ -10,7 +10,7 @@ export default function Home() {
     // Fetch statuses
     Promise.all([
       fetch('/api/form-status?formId=che-thai').then(res => res.json()),
-      fetch('/api/form-status?formId=onigiri-tarts').then(res => res.json())
+      fetch('/api/form-status?formId=onigiri-egg-tarts').then(res => res.json())
     ]).then(([cheThai, onigiri]) => {
       setIsCheThaiOpen(cheThai.isOpen);
       setIsOnigiriOpen(onigiri.isOpen);
@@ -23,10 +23,10 @@ export default function Home() {
 
   const fundraisers = [
     {
-      id: 'onigiri-tarts',
+      id: 'onigiri-egg-tarts',
       title: 'Onigiri & Egg Tarts',
       pickup: 'April 28, 2026 @ Willard Straight Hall',
-      path: '/onigiri-tarts',
+      path: '/onigiri-egg-tarts',
       isOpen: isOnigiriOpen
     },
     {

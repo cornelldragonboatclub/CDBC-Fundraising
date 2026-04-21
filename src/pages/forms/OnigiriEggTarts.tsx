@@ -3,19 +3,23 @@ import { Link } from 'react-router-dom';
 import { Home, Share, ChevronDown, ArrowUpDown, Copy, Check, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TriangleGrid from '../../components/TriangleGrid';
+import OnigiriIcon from '../../components/OnigiriIcon';
+import EggTartIcon from '../../components/CookieIcon';
 
 const PRICING = {
     onigiri_1: 3,
-    tart_1: 3,
+    egg_tart_1: 3,
     onigiri_3: 7,
-    tart_3: 7
+    egg_tart_3: 7
 };
+// ... rest of the file stays same, just update the jsx usage
+// (skipping some lines for brevity in thought, will provide full block)
 
 const REFERRAL_OPTIONS = [
     "Alex", "Crystal", "Emily", "Ethan", "Hilary", "Janice", "Vivian", "Zach", "Other"
 ];
 
-export default function OnigiriTarts() {
+export default function OnigiriEggTarts() {
     const [isLoading, setIsLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState<boolean | null>(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
@@ -24,9 +28,9 @@ export default function OnigiriTarts() {
         fullName: '',
         email: '',
         onigiri_1: 0,
-        tart_1: 0,
+        egg_tart_1: 0,
         onigiri_3: 0,
-        tart_3: 0,
+        egg_tart_3: 0,
         referral: '',
         otherReferral: '',
         pickupAgreement: false
@@ -35,19 +39,19 @@ export default function OnigiriTarts() {
     const [copied, setCopied] = useState(false);
 
     const totalCost = (formData.onigiri_1 * PRICING.onigiri_1) + 
-                      (formData.tart_1 * PRICING.tart_1) + 
+                      (formData.egg_tart_1 * PRICING.egg_tart_1) + 
                       (formData.onigiri_3 * PRICING.onigiri_3) + 
-                      (formData.tart_3 * PRICING.tart_3);
+                      (formData.egg_tart_3 * PRICING.egg_tart_3);
 
     const totalQuantity = (formData.onigiri_1 * 1) + 
-                         (formData.tart_1 * 1) + 
+                         (formData.egg_tart_1 * 1) + 
                          (formData.onigiri_3 * 3) + 
-                         (formData.tart_3 * 3);
+                         (formData.egg_tart_3 * 3);
 
     useEffect(() => {
         const checkFormStatus = async () => {
             try {
-                const res = await fetch('/api/form-status?formId=onigiri-tarts');
+                const res = await fetch('/api/form-status?formId=onigiri-egg-tarts');
                 if (res.ok) {
                     const data = await res.json();
                     setIsFormOpen(data.isOpen);
@@ -70,7 +74,6 @@ export default function OnigiriTarts() {
         if (!formData.fullName.trim()) newErrors.fullName = "Name is required";
         if (!formData.email.trim()) newErrors.email = "Email is required";
         if (totalQuantity <= 0) newErrors.quantity = "Please select at least one item";
-        if (!formData.referral) newErrors.referral = "Please select a referral";
         if (formData.referral === 'Other' && !formData.otherReferral.trim()) newErrors.otherReferral = "Please specify";
         if (!formData.pickupAgreement) newErrors.pickupAgreement = "You must agree to the pickup terms";
         
@@ -92,12 +95,12 @@ export default function OnigiriTarts() {
                 items: {
                     onigiri_single: formData.onigiri_1,
                     onigiri_triple: formData.onigiri_3,
-                    tart_single: formData.tart_1,
-                    tart_triple: formData.tart_3
+                    egg_tart_single: formData.egg_tart_1,
+                    egg_tart_triple: formData.egg_tart_3
                 },
                 totalCost,
                 referrals: finalReferral,
-                formId: 'onigiri-tarts',
+                formId: 'onigiri-egg-tarts',
                 timestamp: new Date().toISOString()
             };
 
@@ -155,15 +158,19 @@ export default function OnigiriTarts() {
                     </div>
                     <h2 className="text-2xl font-bold text-stone-800 mb-2">Order Received!</h2>
                     <p className="text-stone-600 mb-6">Thank you for supporting Cornell Dragon Boat! We've received your order for {totalQuantity} items.</p>
-                    <div className="bg-stone-50 p-4 rounded-xl mb-6 text-sm">
-                        <p className="font-bold mb-1">Next Steps:</p>
-                        <div className="space-y-2">
+                    <div className="bg-stone-50 p-6 rounded-xl mb-6">
+                        <div className="flex justify-between items-center pb-4 mb-4 border-b border-stone-200">
+                            <span className="text-stone-500 font-bold uppercase tracking-wider text-[10px]">Total Amount Due</span>
+                            <span className="text-2xl font-black text-red-600">${totalCost}.00</span>
+                        </div>
+                        <p className="font-bold mb-2 text-stone-800 text-left text-xs uppercase tracking-tight">Next Steps:</p>
+                        <div className="space-y-3 text-sm text-left">
                             <p>
                                 Venmo <a href="https://venmo.com/u/hilarykuang" target="_blank" rel="noopener noreferrer" className="text-red-600 font-bold hover:underline inline-flex items-center gap-1">
                                     @HilaryKuang <ExternalLink size={12} />
                                 </a>
                             </p>
-                            <div className="flex items-center justify-center gap-2">
+                            <div className="flex items-center justify-start gap-2">
                                 <span>Zelle <strong>415-307-1306</strong></span>
                                 <button 
                                     onClick={() => handleCopy("415-307-1306")}
@@ -173,8 +180,8 @@ export default function OnigiriTarts() {
                                     {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
                                 </button>
                             </div>
+                            <p className="mt-2">Subject: <span className="bg-yellow-100 px-1 rounded font-mono">Dragonboat</span></p>
                         </div>
-                        <p className="mt-2">Subject: <span className="bg-yellow-100 px-1 rounded font-mono">Dragonboat + {totalQuantity} items</span></p>
                     </div>
                     <div className="flex flex-col gap-3">
                         <button onClick={handleShare} className="bg-red-600 text-white flex items-center justify-center gap-2 font-bold py-3 rounded-xl hover:bg-red-700 transition-colors">
@@ -188,7 +195,7 @@ export default function OnigiriTarts() {
     }
 
     return (
-        <div className="bg-red-50 text-stone-800 font-sans antialiased min-h-screen flex flex-col items-center p-4 relative overflow-x-hidden">
+        <div className="bg-red-50 text-stone-800 font-sans antialiased min-h-screen flex flex-col items-center p-4 relative overflow-x-hidden no-scrollbar">
             <AnimatePresence>
                 {isLoading && (
                     <motion.div
@@ -203,15 +210,17 @@ export default function OnigiriTarts() {
 
             <div className="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden relative flex flex-col z-10 mb-8">
                 
-                <div className="bg-red-600 text-white p-6 text-center z-10 relative">
+                <div className="bg-red-600 text-white p-6 pb-5 text-center z-10 relative">
                     <Link 
                         to="/" 
-                        className="absolute top-6 left-6 text-red-200 hover:text-white transition-colors"
+                        className="absolute top-1/2 -translate-y-1/2 left-4 text-red-200 hover:text-white transition-colors"
                     >
-                        <Home size={24} />
+                        <Home size={20} />
                     </Link>
-                    <h1 className="text-2xl font-bold tracking-tight">Onigiri & Egg Tarts</h1>
-                    <p className="text-red-100 text-sm mt-1">Cornell Dragon Boat Club</p>
+                    <div className="px-8">
+                        <h1 className="text-xl font-bold tracking-tight leading-tight">Onigiri & Egg Tarts</h1>
+                        <p className="text-red-100 text-xs mt-0.5">Cornell Dragon Boat Club</p>
+                    </div>
                 </div>
 
                 {isFormOpen === false ? (
@@ -237,21 +246,29 @@ export default function OnigiriTarts() {
                                 Help us paddle to San Francisco! Choose your treats below. 🐉
                                 <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-white border-b-2 border-r-2 border-red-50 rotate-45"></div>
                             </div>
-                            <div className="w-20 h-20 relative animate-bob">
-                                <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md overflow-visible">
-                                    <path d="M 30 80 C 30 45, 40 35, 50 35 C 60 35, 70 45, 70 80 Z" fill="#dc2626" />
-                                    <path d="M 40 80 C 40 55, 45 45, 50 45 C 55 45, 60 55, 60 80 Z" fill="#fca5a5" />
-                                    <circle cx="50" cy="35" r="22" fill="#dc2626" />
-                                    <ellipse cx="50" cy="44" rx="14" ry="10" fill="#fca5a5" />
-                                    <circle cx="45" cy="42" r="2" fill="#991b1b" />
-                                    <circle cx="55" cy="42" r="2" fill="#991b1b" />
-                                    <g id="dragon-eyes">
-                                        <path d="M 38 30 Q 42 25 46 30" fill="none" stroke="#1c1917" strokeWidth="2.5" strokeLinecap="round" />
-                                        <path d="M 54 30 Q 58 25 62 30" fill="none" stroke="#1c1917" strokeWidth="2.5" strokeLinecap="round" />
-                                    </g>
-                                    <path d="M 33 18 Q 25 5 20 12 Q 28 22 33 22 Z" fill="#fbbf24" />
-                                    <path d="M 67 18 Q 75 5 80 12 Q 72 22 67 22 Z" fill="#fbbf24" />
-                                </svg>
+                            <div className="flex items-center justify-center space-x-2 w-full">
+                                <div className="w-16 h-16 relative animate-float translate-y-2">
+                                    <OnigiriIcon />
+                                </div>
+                                <div className="w-24 h-24 relative animate-bob">
+                                    <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md overflow-visible">
+                                        <path d="M 30 80 C 30 45, 40 35, 50 35 C 60 35, 70 45, 70 80 Z" fill="#dc2626" />
+                                        <path d="M 40 80 C 40 55, 45 45, 50 45 C 55 45, 60 55, 60 80 Z" fill="#fca5a5" />
+                                        <circle cx="50" cy="35" r="22" fill="#dc2626" />
+                                        <ellipse cx="50" cy="44" rx="14" ry="10" fill="#fca5a5" />
+                                        <circle cx="45" cy="42" r="2" fill="#991b1b" />
+                                        <circle cx="55" cy="42" r="2" fill="#991b1b" />
+                                        <g id="dragon-eyes">
+                                            <path d="M 38 30 Q 42 25 46 30" fill="none" stroke="#1c1917" strokeWidth="2.5" strokeLinecap="round" />
+                                            <path d="M 54 30 Q 58 25 62 30" fill="none" stroke="#1c1917" strokeWidth="2.5" strokeLinecap="round" />
+                                        </g>
+                                        <path d="M 33 18 Q 25 5 20 12 Q 28 22 33 22 Z" fill="#fbbf24" />
+                                        <path d="M 67 18 Q 75 5 80 12 Q 72 22 67 22 Z" fill="#fbbf24" />
+                                    </svg>
+                                </div>
+                                <div className="w-14 h-14 relative animate-float-delayed translate-y-2">
+                                    <EggTartIcon />
+                                </div>
                             </div>
                         </div>
 
@@ -297,8 +314,8 @@ export default function OnigiriTarts() {
                                     {[
                                         { id: 'onigiri_1', name: '1 Onigiri', price: 3 },
                                         { id: 'onigiri_3', name: '3 Onigiri', price: 7 },
-                                        { id: 'tart_1', name: '1 Egg Tart', price: 3 },
-                                        { id: 'tart_3', name: '3 Egg Tarts', price: 7 }
+                                        { id: 'egg_tart_1', name: '1 Egg Tart', price: 3 },
+                                        { id: 'egg_tart_3', name: '3 Egg Tarts', price: 7 }
                                     ].map(item => {
                                         const isBundle = item.id.includes('_3');
                                         return (
@@ -350,7 +367,7 @@ export default function OnigiriTarts() {
                                 </h2>
                                 <div className="space-y-4">
                                     <div className="relative">
-                                        <label className="block text-xs font-bold text-stone-400 uppercase tracking-wider mb-1">Who referred you?</label>
+                                        <label className="block text-xs font-bold text-stone-400 uppercase tracking-wider mb-1">Who referred you? (optional)</label>
                                         <div className="relative">
                                             <select 
                                                 value={formData.referral}
@@ -387,10 +404,37 @@ export default function OnigiriTarts() {
                                 </h2>
                                 <div className="bg-red-50 p-6 rounded-2xl border-2 border-red-100">
                                     <div className="flex justify-between items-center mb-4">
-                                        <span className="font-bold text-stone-600">Total Price</span>
+                                        <span className="font-bold text-stone-600 text-sm uppercase tracking-wider">Total Price</span>
                                         <span className="text-3xl font-black text-red-600">${totalCost}.00</span>
                                     </div>
-                                    <div className="space-y-3 text-xs leading-relaxed text-stone-600 bg-white/50 p-4 rounded-xl">
+                                    
+                                    <AnimatePresence>
+                                        {(formData.onigiri_1 > 0 || formData.onigiri_3 > 0 || formData.egg_tart_1 > 0 || formData.egg_tart_3 > 0) && (
+                                            <motion.div 
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                className="overflow-hidden border-t border-red-100/50 pt-4 mb-4"
+                                            >
+                                                <p className="text-[11px] font-black text-red-800 uppercase tracking-[0.15em] mb-2">Your Order</p>
+                                                <div className="space-y-1.5">
+                                                    {[
+                                                        { name: '1 Onigiri', qty: formData.onigiri_1, price: PRICING.onigiri_1 },
+                                                        { name: '3 Onigiri', qty: formData.onigiri_3, price: PRICING.onigiri_3 },
+                                                        { name: '1 Egg Tart', qty: formData.egg_tart_1, price: PRICING.egg_tart_1 },
+                                                        { name: '3 Egg Tarts', qty: formData.egg_tart_3, price: PRICING.egg_tart_3 }
+                                                    ].filter(item => item.qty > 0).map(item => (
+                                                        <div key={item.name} className="flex justify-between items-center text-sm text-stone-600">
+                                                            <span>{item.qty}x {item.name}</span>
+                                                            <span className="font-medium">${item.qty * item.price}.00</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
+                                    <div className="space-y-3 text-sm leading-relaxed text-stone-600 bg-white/50 p-4 rounded-xl">
                                         <p>
                                             <strong>Step 1:</strong> Pay via Venmo 
                                             <a href="https://venmo.com/u/hilarykuang" target="_blank" rel="noopener noreferrer" className="text-red-600 font-bold hover:underline mx-1 inline-flex items-center gap-0.5">

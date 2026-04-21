@@ -74,7 +74,7 @@ export default function Admin() {
 
     const fetchFormStatus = async () => {
         try {
-            const res = await fetch('/api/form-status');
+            const res = await fetch(`/api/form-status?formId=${selectedFormId || 'che-thai'}`);
             if (res.ok) {
                 const data = await res.json();
                 setIsFormOpen(data.isOpen);
@@ -174,18 +174,37 @@ export default function Admin() {
         setEditingRowId(null);
     };
 
+    const getItemUnits = (sub: any) => {
+        const formId = sub.formId || 'che-thai';
+        if (formId === 'onigiri-egg-tarts') {
+            const items = sub.items || {};
+            return {
+                'Onigiri': (items.onigiri_single || 0) + ((items.onigiri_triple || 0) * 3),
+                'Egg Tarts': (items.egg_tart_single || 0) + ((items.egg_tart_triple || 0) * 3)
+            };
+        }
+        if (formId === 'che-thai') {
+            return { 'Cups': sub.quantity || 0 };
+        }
+        return {};
+    };
+
     const formStats = useMemo(() => {
-        const stats: Record<string, { count: number, totalRevenue: number, totalOrders: number, formId: string }> = {
-            'che-thai': { count: 0, totalRevenue: 0, totalOrders: 0, formId: 'che-thai' }
-        };
+        const stats: Record<string, { count: number, totalRevenue: number, totalOrders: number, itemBreakdown: Record<string, number>, formId: string }> = {};
+        
         submissions.forEach(sub => {
             const id = sub.formId || 'che-thai';
             if (!stats[id]) {
-                stats[id] = { count: 0, totalRevenue: 0, totalOrders: 0, formId: id };
+                stats[id] = { count: 0, totalRevenue: 0, totalOrders: 0, itemBreakdown: {}, formId: id };
             }
             stats[id].count += 1;
             stats[id].totalRevenue += (sub.totalCost || 0);
             stats[id].totalOrders += (sub.quantity || 0);
+            
+            const units = getItemUnits(sub);
+            Object.entries(units).forEach(([label, count]) => {
+                stats[id].itemBreakdown[label] = (stats[id].itemBreakdown[label] || 0) + (count as number);
+            });
         });
         return Object.values(stats);
     }, [submissions]);
@@ -230,13 +249,19 @@ export default function Admin() {
         if (!selectedFormId) return null;
         let revenue = 0;
         let totalOrders = 0;
+        const itemBreakdown: Record<string, number> = {};
         const refCounts: Record<string, { name: string, count: number }> = {};
         
         filteredSubmissions.forEach(sub => {
             revenue += (sub.totalCost || 0);
             totalOrders += (sub.quantity || 0);
+            
+            const units = getItemUnits(sub);
+            Object.entries(units).forEach(([label, count]) => {
+                itemBreakdown[label] = (itemBreakdown[label] || 0) + (count as number);
+            });
+
             if (sub.referrals) {
-                // Split by comma in case of multiple names, trim, and use lowercase for grouping
                 const refs = sub.referrals.split(',').map((r: string) => r.trim()).filter(Boolean);
                 refs.forEach((r: string) => {
                     const key = r.toLowerCase();
@@ -247,17 +272,27 @@ export default function Admin() {
         });
         
         const leaderboard = Object.values(refCounts).sort((a, b) => b.count - a.count).slice(0, 5);
-        return { revenue, totalOrders, leaderboard };
+        return { revenue, totalOrders, itemBreakdown, leaderboard };
     }, [filteredSubmissions, selectedFormId]);
 
     const downloadCSV = () => {
         const dataToDownload = selectedFormId ? filteredSubmissions : submissions;
         if (dataToDownload.length === 0) return;
         
-        const headers = ['Date', 'Form ID', 'Name', 'Email', 'Net ID', 'Quantity', 'Total Cost', 'Payment ID', 'Referrals', 'Paid', 'Picked Up', 'Notes'];
+        // Define dynamic item columns
+        const allItemKeys = new Set<string>();
+        dataToDownload.forEach(sub => {
+            Object.keys(getItemUnits(sub)).forEach(k => allItemKeys.add(k));
+        });
+        const itemHeaderArray = Array.from(allItemKeys);
+
+        const headers = ['Date', 'Form ID', 'Name', 'Email', 'Net ID', 'Quantity', ...itemHeaderArray, 'Total Cost', 'Payment ID', 'Referrals', 'Paid', 'Picked Up', 'Notes'];
         const csvRows = [headers.join(',')];
 
         dataToDownload.forEach(sub => {
+            const units = getItemUnits(sub);
+            const itemCells = itemHeaderArray.map(key => (units as any)[key] || 0);
+
             const row = [
                 new Date(sub.createdAt).toLocaleDateString(),
                 sub.formId || 'che-thai',
@@ -265,6 +300,7 @@ export default function Admin() {
                 sub.email,
                 sub.netId,
                 sub.quantity,
+                ...itemCells,
                 sub.totalCost,
                 `"${sub.paymentId}"`,
                 `"${sub.referrals || ''}"`,
@@ -285,6 +321,15 @@ export default function Admin() {
         a.click();
         document.body.removeChild(a);
     };
+
+    const activeItemHeaders = useMemo(() => {
+        if (!selectedFormId) return [];
+        const headers = new Set<string>();
+        filteredSubmissions.forEach(sub => {
+            Object.keys(getItemUnits(sub)).forEach(h => headers.add(h));
+        });
+        return Array.from(headers);
+    }, [filteredSubmissions, selectedFormId]);
 
     if (!isAuthenticated) {
         return (
@@ -382,6 +427,17 @@ export default function Admin() {
                                                 <span className="text-xs font-medium uppercase tracking-wider">Orders</span>
                                             </div>
                                             <div className="text-2xl font-bold text-stone-800">{stat.totalOrders}</div>
+                                            {/* Item Breakdown */}
+                                            {Object.entries(stat.itemBreakdown).length > 0 && (
+                                                <div className="mt-2 pt-2 border-t border-stone-200/50 space-y-0.5">
+                                                    {Object.entries(stat.itemBreakdown).map(([label, count]) => (
+                                                        <div key={label} className="flex justify-between text-[10px] font-bold text-stone-400 uppercase tracking-tighter">
+                                                            <span>{label}</span>
+                                                            <span className="text-stone-600">{count}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="bg-stone-50 p-3 rounded-xl">
                                             <div className="flex items-center space-x-1 text-stone-500 mb-1">
@@ -413,6 +469,17 @@ export default function Admin() {
                                         <h3 className="font-bold uppercase tracking-wider text-sm">Total Orders</h3>
                                     </div>
                                     <div className="text-4xl font-bold text-stone-800">{activeStats.totalOrders}</div>
+                                    {/* Breakdown */}
+                                    {Object.entries(activeStats.itemBreakdown).length > 0 && (
+                                        <div className="mt-4 pt-4 border-t border-stone-100 flex flex-wrap gap-2">
+                                            {Object.entries(activeStats.itemBreakdown).map(([label, count]) => (
+                                                <div key={label} className="bg-stone-50 px-2.5 py-1.5 rounded-lg border border-stone-200/50 flex flex-col">
+                                                    <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest leading-none mb-1">{label}</span>
+                                                    <span className="text-sm font-bold text-stone-700 leading-none">{count}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-stone-200">
                                     <div className="flex items-center space-x-2 text-stone-500 mb-4">
@@ -516,7 +583,10 @@ export default function Admin() {
                                             <th className="p-4 font-medium w-12">Edit</th>
                                             <th className="p-4 font-medium">Date</th>
                                             <th className="p-4 font-medium">Name</th>
-                                            <th className="p-4 font-medium">Order</th>
+                                            {activeItemHeaders.map(h => (
+                                                <th key={h} className="p-4 font-medium text-center bg-stone-50/50">{h}</th>
+                                            ))}
+                                            <th className="p-4 font-medium">Revenue</th>
                                             <th className="p-4 font-medium">Details</th>
                                             <th className="p-4 font-medium text-center">Paid</th>
                                             <th className="p-4 font-medium text-center">Picked Up</th>
@@ -548,14 +618,17 @@ export default function Admin() {
                                                             <input type="text" className="border border-stone-300 rounded px-2 py-1 text-sm w-full mb-1 outline-none focus:border-red-500" value={editFormData.fullName || ''} onChange={e => setEditFormData({...editFormData, fullName: e.target.value})} placeholder="Name" />
                                                             <input type="text" className="border border-stone-300 rounded px-2 py-1 text-xs w-full outline-none focus:border-red-500" value={editFormData.email || ''} onChange={e => setEditFormData({...editFormData, email: e.target.value})} placeholder="Email" />
                                                         </td>
+                                                        {activeItemHeaders.map(h => (
+                                                            <td key={h} className="p-4 text-center text-stone-300 italic text-[10px]">Itemized stats auto-calculate</td>
+                                                        ))}
                                                         <td className="p-4 text-sm">
                                                             <div className="flex items-center space-x-2 mb-1">
-                                                                <span className="text-stone-400 w-8">Qty:</span>
-                                                                <input type="number" className="border border-stone-300 rounded px-2 py-1 text-sm w-16 outline-none focus:border-red-500" value={editFormData.quantity || 0} onChange={e => setEditFormData({...editFormData, quantity: Number(e.target.value), totalCost: Number(e.target.value) * 6})} />
+                                                                <span className="text-stone-400 w-8">Sum:</span>
+                                                                <input type="number" className="border border-stone-300 rounded px-2 py-1 text-sm w-16 outline-none focus:border-red-500 font-bold" value={editFormData.quantity || 0} onChange={e => setEditFormData({...editFormData, quantity: Number(e.target.value)})} />
                                                             </div>
                                                             <div className="flex items-center space-x-2">
-                                                                <span className="text-stone-400 w-8">Total:</span>
-                                                                <input type="number" className="border border-stone-300 rounded px-2 py-1 text-sm w-16 outline-none focus:border-red-500" value={editFormData.totalCost || 0} onChange={e => setEditFormData({...editFormData, totalCost: Number(e.target.value)})} />
+                                                                <span className="text-stone-400 w-8">Cost:</span>
+                                                                <input type="number" className="border border-stone-300 rounded px-2 py-1 text-sm w-16 outline-none focus:border-red-500 text-green-600 font-bold" value={editFormData.totalCost || 0} onChange={e => setEditFormData({...editFormData, totalCost: Number(e.target.value)})} />
                                                             </div>
                                                         </td>
                                                         <td className="p-4 text-sm">
@@ -608,9 +681,18 @@ export default function Admin() {
                                                         <div className="font-medium text-stone-800">{sub.fullName}</div>
                                                         <div className="text-xs text-stone-500">{sub.email}</div>
                                                     </td>
+                                                    {activeItemHeaders.map(h => {
+                                                        const units = getItemUnits(sub);
+                                                        const count = (units as any)[h] || 0;
+                                                        return (
+                                                            <td key={h} className={`p-4 text-center font-mono ${count > 0 ? 'bg-stone-50/30' : 'text-stone-300'}`}>
+                                                                {count}
+                                                            </td>
+                                                        );
+                                                    })}
                                                     <td className="p-4 text-sm">
-                                                        <div><span className="text-stone-400">Qty:</span> <span className="font-medium">{sub.quantity}</span></div>
-                                                        <div><span className="text-stone-400">Total:</span> <span className="font-medium text-green-600">${sub.totalCost}</span></div>
+                                                        <div className="font-medium text-green-600">${sub.totalCost}</div>
+                                                        <div className="text-[10px] text-stone-400 font-bold uppercase tracking-tighter">Total: {sub.quantity} units</div>
                                                     </td>
                                                     <td className="p-4 text-sm">
                                                         <div><span className="text-stone-400">NetID:</span> {sub.netId}</div>
