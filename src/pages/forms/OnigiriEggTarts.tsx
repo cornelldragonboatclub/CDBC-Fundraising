@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Home, Share, ChevronDown, ArrowUpDown, Copy, Check, ExternalLink } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Home, Share, ChevronDown, ArrowUpDown, Copy, Check, ExternalLink, Gamepad2 } from 'lucide-react';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
 import TriangleGrid from '../../components/TriangleGrid';
 import OnigiriIcon from '../../components/OnigiriIcon';
-import EggTartIcon from '../../components/CookieIcon';
+import EggTartIcon from '../../components/EggTartIcon';
+import HungryDragonGame from '../../components/HungryDragonGame';
 
 const PRICING = {
     onigiri_1: 3,
@@ -23,6 +24,7 @@ export default function OnigiriEggTarts() {
     const [isLoading, setIsLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState<boolean | null>(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isGameOpen, setIsGameOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({
         fullName: '',
@@ -47,6 +49,40 @@ export default function OnigiriEggTarts() {
                          (formData.egg_tart_1 * 1) + 
                          (formData.onigiri_3 * 3) + 
                          (formData.egg_tart_3 * 3);
+
+    const treatsRef = useRef<HTMLDivElement>(null);
+    const treatsInView = useInView(treatsRef, { amount: 0.1 });
+
+    const orderedItems = useMemo(() => {
+        const items = [];
+        const onigiriCount = (formData.onigiri_1 * 1) + (formData.onigiri_3 * 3);
+        const eggTartCount = (formData.egg_tart_1 * 1) + (formData.egg_tart_3 * 3);
+        
+        // Use a deterministic pileIndex (evens for onigiri, odds for egg tarts)
+        // so adding one type doesn't shift the positions of the other type!
+        for (let i = 0; i < onigiriCount; i++) {
+            items.push({ type: 'onigiri', id: `o_${i}`, pileIndex: i * 2 });
+        }
+        for (let i = 0; i < eggTartCount; i++) {
+            items.push({ type: 'eggtart', id: `e_${i}`, pileIndex: (i * 2) + 1 });
+        }
+        
+        // Sort to ensure the pile layers correctly based on index
+        return items.sort((a, b) => a.pileIndex - b.pileIndex);
+    }, [formData]);
+
+    const getPilePos = (index: number) => {
+        const angle = index * 137.5; // Golden angle for natural distribution
+        // Balanced base distance and multiplier for a moderate early spread
+        const r = 42 + (Math.sqrt(index) * 16); 
+        // Moderate horizontal stretch
+        const xOffset = Math.cos(angle * Math.PI / 180) * r * 1.2;
+        const yOffset = Math.abs(Math.sin(angle * Math.PI / 180) * r * 0.65) + 15;
+        const rotate = (index * 67) % 360;
+        return { xOffset, yOffset, rotate, zIndex: 10 + index };
+    };
+
+    const showInitialLargeIcons = totalQuantity === 0;
 
     useEffect(() => {
         const checkFormStatus = async () => {
@@ -195,7 +231,7 @@ export default function OnigiriEggTarts() {
     }
 
     return (
-        <div className="bg-red-50 text-stone-800 font-sans antialiased min-h-screen flex flex-col items-center p-4 relative overflow-x-hidden no-scrollbar">
+        <div className="bg-red-50 text-stone-800 font-sans antialiased min-h-screen flex flex-col items-center p-4 relative no-scrollbar">
             <AnimatePresence>
                 {isLoading && (
                     <motion.div
@@ -208,19 +244,32 @@ export default function OnigiriEggTarts() {
                 )}
             </AnimatePresence>
 
-            <div className="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden relative flex flex-col z-10 mb-8">
+            <AnimatePresence>
+                {isGameOpen && (
+                    <HungryDragonGame onClose={() => setIsGameOpen(false)} />
+                )}
+            </AnimatePresence>
+
+            <div className="max-w-md w-full bg-white rounded-3xl shadow-xl relative flex flex-col z-10 mb-8">
                 
-                <div className="bg-red-600 text-white p-6 pb-5 text-center z-10 relative">
+                <div className="bg-red-600 text-white p-6 pb-5 text-center z-10 relative rounded-t-3xl">
                     <Link 
                         to="/" 
                         className="absolute top-1/2 -translate-y-1/2 left-4 text-red-200 hover:text-white transition-colors"
                     >
                         <Home size={20} />
                     </Link>
-                    <div className="px-8">
+                    <div className="px-8 flex flex-col items-center justify-center">
                         <h1 className="text-xl font-bold tracking-tight leading-tight">Onigiri & Egg Tarts</h1>
                         <p className="text-red-100 text-xs mt-0.5">Cornell Dragon Boat Club</p>
                     </div>
+                    <button 
+                        onClick={() => setIsGameOpen(true)}
+                        className="absolute top-1/2 -translate-y-1/2 right-4 text-red-200 hover:text-yellow-300 hover:scale-110 transition-all drop-shadow-md"
+                        title="Play Hungry Dragon!"
+                    >
+                        <Gamepad2 size={24} />
+                    </button>
                 </div>
 
                 {isFormOpen === false ? (
@@ -256,40 +305,86 @@ export default function OnigiriEggTarts() {
                         </Link>
                     </div>
                 ) : (
-                    <div className="p-6 space-y-8">
-                        {/* Intro / Dragon */}
-                        <div className="flex flex-col items-center">
+                    <div className="flex flex-col z-10">
+                        {/* Sticky Header with Dragon & Treat Pile */}
+                        <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm pt-6 pb-6 w-full border-b border-red-50 shadow-sm flex flex-col items-center transition-all rounded-b-3xl">
                             <div className="bg-white border-2 border-red-50 text-stone-700 text-sm py-2 px-4 rounded-2xl shadow-sm relative mb-4 text-center max-w-[90%]">
-                                Help us paddle to San Francisco! Choose your treats below. 🐉
+                                Help us paddle to San Francisco! Choose your treats below.
                                 <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-white border-b-2 border-r-2 border-red-50 rotate-45"></div>
                             </div>
-                            <div className="flex items-center justify-center space-x-2 w-full">
-                                <div className="w-16 h-16 relative animate-float translate-y-2">
-                                    <OnigiriIcon />
+                            
+                            <div className="flex items-center justify-center w-full relative h-[100px]">
+                                {/* Initial Large Onigiri */}
+                                <AnimatePresence>
+                                    {showInitialLargeIcons && (
+                                        <motion.div 
+                                            key="initial-onigiri"
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, scale: 0 }}
+                                            className="w-16 h-16 absolute left-1/2 -ml-[6rem] animate-float translate-y-2 z-10"
+                                        >
+                                            <OnigiriIcon />
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+
+                                {/* Dragon & Hoard Area */}
+                                <div className="w-24 h-24 relative z-30 flex-shrink-0">
+                                    <div className="animate-bob w-full h-full relative z-20">
+                                        <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md overflow-visible">
+                                            <path d="M 30 80 C 30 45, 40 35, 50 35 C 60 35, 70 45, 70 80 Z" fill="#dc2626" />
+                                            <path d="M 40 80 C 40 55, 45 45, 50 45 C 55 45, 60 55, 60 80 Z" fill="#fca5a5" />
+                                            <circle cx="50" cy="35" r="22" fill="#dc2626" />
+                                            <ellipse cx="50" cy="44" rx="14" ry="10" fill="#fca5a5" />
+                                            <circle cx="45" cy="42" r="2" fill="#991b1b" />
+                                            <circle cx="55" cy="42" r="2" fill="#991b1b" />
+                                            <g id="dragon-eyes">
+                                                <path d="M 38 30 Q 42 25 46 30" fill="none" stroke="#1c1917" strokeWidth="2.5" strokeLinecap="round" />
+                                                <path d="M 54 30 Q 58 25 62 30" fill="none" stroke="#1c1917" strokeWidth="2.5" strokeLinecap="round" />
+                                            </g>
+                                            <path d="M 33 18 Q 25 5 20 12 Q 28 22 33 22 Z" fill="#fbbf24" />
+                                            <path d="M 67 18 Q 75 5 80 12 Q 72 22 67 22 Z" fill="#fbbf24" />
+                                        </svg>
+                                    </div>
+                                    
+                                    {/* Dynamic Treat Hoard */}
+                                    <AnimatePresence>
+                                        {orderedItems.map((item) => {
+                                            const pos = getPilePos(item.pileIndex);
+                                            return (
+                                                <motion.div
+                                                    key={item.id}
+                                                    initial={{ scale: 0, opacity: 0, y: -50 }}
+                                                    animate={{ scale: 0.7, opacity: 1, x: pos.xOffset, y: pos.yOffset, rotate: pos.rotate }}
+                                                    className="absolute top-1/2 left-1/2 -mt-8 -ml-8 w-16 h-16 origin-center"
+                                                    style={{ zIndex: pos.zIndex }}
+                                                >
+                                                    {item.type === 'onigiri' ? <OnigiriIcon /> : <EggTartIcon />}
+                                                </motion.div>
+                                            );
+                                        })}
+                                    </AnimatePresence>
                                 </div>
-                                <div className="w-24 h-24 relative animate-bob">
-                                    <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-md overflow-visible">
-                                        <path d="M 30 80 C 30 45, 40 35, 50 35 C 60 35, 70 45, 70 80 Z" fill="#dc2626" />
-                                        <path d="M 40 80 C 40 55, 45 45, 50 45 C 55 45, 60 55, 60 80 Z" fill="#fca5a5" />
-                                        <circle cx="50" cy="35" r="22" fill="#dc2626" />
-                                        <ellipse cx="50" cy="44" rx="14" ry="10" fill="#fca5a5" />
-                                        <circle cx="45" cy="42" r="2" fill="#991b1b" />
-                                        <circle cx="55" cy="42" r="2" fill="#991b1b" />
-                                        <g id="dragon-eyes">
-                                            <path d="M 38 30 Q 42 25 46 30" fill="none" stroke="#1c1917" strokeWidth="2.5" strokeLinecap="round" />
-                                            <path d="M 54 30 Q 58 25 62 30" fill="none" stroke="#1c1917" strokeWidth="2.5" strokeLinecap="round" />
-                                        </g>
-                                        <path d="M 33 18 Q 25 5 20 12 Q 28 22 33 22 Z" fill="#fbbf24" />
-                                        <path d="M 67 18 Q 75 5 80 12 Q 72 22 67 22 Z" fill="#fbbf24" />
-                                    </svg>
-                                </div>
-                                <div className="w-14 h-14 relative animate-float-delayed translate-y-2">
-                                    <EggTartIcon />
-                                </div>
+
+                                {/* Initial Large Egg Tart */}
+                                <AnimatePresence>
+                                    {showInitialLargeIcons && (
+                                        <motion.div 
+                                            key="initial-eggtart"
+                                            initial={{ opacity: 0, x: 20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, scale: 0 }}
+                                            className="w-14 h-14 absolute left-1/2 ml-[2.5rem] animate-float-delayed translate-y-2 z-10"
+                                        >
+                                            <EggTartIcon />
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-8">
+                        <form onSubmit={handleSubmit} className="p-6 space-y-8 pt-10">
                             {/* Personal Info */}
                             <section className="space-y-4">
                                 <h2 className="text-lg font-bold border-b border-stone-100 pb-2 flex items-center">
@@ -321,7 +416,7 @@ export default function OnigiriEggTarts() {
                             </section>
 
                             {/* Order Selection */}
-                            <section className="space-y-4">
+                            <section className="space-y-4" ref={treatsRef}>
                                 <h2 className="text-lg font-bold border-b border-stone-100 pb-2 flex items-center">
                                     <span className="w-1.5 h-1.5 rounded-full bg-red-600 mr-2"></span>
                                     2. Choose Your Treats

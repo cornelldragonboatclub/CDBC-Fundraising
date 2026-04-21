@@ -1,0 +1,266 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Trophy, X, Play, Loader2 } from 'lucide-react';
+import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import OnigiriIcon from './OnigiriIcon';
+import EggTartIcon from './EggTartIcon';
+
+interface HungryDragonGameProps {
+    onClose: () => void;
+}
+
+export default function HungryDragonGame({ onClose }: HungryDragonGameProps) {
+    const [gameState, setGameState] = useState<'idle' | 'playing' | 'gameover'>('idle');
+    const [netId, setNetId] = useState('');
+    const [score, setScore] = useState(0);
+    const [highScores, setHighScores] = useState<{ id: string, netId: string, score: number }[]>([]);
+    
+    // Grid slot 0-8. Null if nothing is active.
+    const [activeItem, setActiveItem] = useState<{ index: number, type: 'onigiri' | 'eggtart' | 'crab' | 'buoy', id: string } | null>(null);
+
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Fetch Leaderboard
+    useEffect(() => {
+        const q = query(collection(db, 'leaderboard'), orderBy('score', 'desc'), limit(3));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const scores = snapshot.docs.map(doc => ({
+                id: doc.id,
+                netId: doc.data().netId,
+                score: doc.data().score
+            }));
+            setHighScores(scores);
+        }, (error) => {
+            console.error("Error fetching leaderboard:", error);
+        });
+        return () => unsubscribe();
+    }, []);
+
+    const startGame = () => {
+        if (!netId.trim()) return;
+        setScore(0);
+        setGameState('playing');
+        spawnNextItem(0);
+    };
+
+    const endGame = async (finalScore: number) => {
+        setGameState('gameover');
+        setActiveItem(null);
+        if (timerRef.current) clearTimeout(timerRef.current);
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+        // Save score
+        if (finalScore > 0) {
+            try {
+                await addDoc(collection(db, 'leaderboard'), {
+                    netId: netId.trim(),
+                    score: finalScore,
+                    createdAt: serverTimestamp()
+                });
+            } catch (e) {
+                console.error("Error saving score", e);
+            }
+        }
+    };
+
+    const spawnNextItem = (currentScore: number) => {
+        setActiveItem(null);
+        
+        // Pace getting faster
+        const delay = Math.max(100, 800 - (currentScore * 20)); 
+        const visibleTime = Math.max(300, 1500 - (currentScore * 30));
+
+        timerRef.current = setTimeout(() => {
+            const types: ('onigiri' | 'eggtart' | 'crab' | 'buoy')[] = ['onigiri', 'eggtart', 'crab', 'buoy'];
+            // As score goes up, slightly higher chance for bad items, but keep good items common
+            const isBad = Math.random() < 0.3; 
+            let selectedType = types[0];
+            if (isBad) {
+                selectedType = types[Math.floor(Math.random() * 2) + 2]; // index 2, 3
+            } else {
+                selectedType = types[Math.floor(Math.random() * 2)]; // index 0, 1
+            }
+
+            const item = {
+                index: Math.floor(Math.random() * 9),
+                type: selectedType,
+                id: Math.random().toString()
+            };
+            
+            setActiveItem(item);
+
+            timeoutRef.current = setTimeout(() => {
+                // If it was a good item and time ran out, Game Over!
+                if (item.type === 'onigiri' || item.type === 'eggtart') {
+                    endGame(currentScore);
+                } else {
+                    // It was a bad item and they ignored it (Good!)
+                    spawnNextItem(currentScore);
+                }
+            }, visibleTime);
+
+        }, delay);
+    };
+
+    const handleTap = (index: number) => {
+        if (gameState !== 'playing' || !activeItem || activeItem.index !== index) return;
+
+        // Clear the timeout that would trigger game over for missing
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+        if (activeItem.type === 'onigiri' || activeItem.type === 'eggtart') {
+            // Good Tap!
+            const newScore = score + 1;
+            setScore(newScore);
+            spawnNextItem(newScore);
+        } else {
+            // Bad Tap (Crab, Buoy)
+            endGame(score);
+        }
+    };
+
+    const BadItemGraphic = ({ type }: { type: 'crab' | 'buoy' }) => {
+        let emoji = '🦀';
+        if (type === 'buoy') emoji = '🛟';
+        return <div className="text-4xl drop-shadow-md select-none leading-none flex items-center justify-center">{emoji}</div>;
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 bg-stone-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="bg-red-50 rounded-3xl shadow-xl w-full max-w-md overflow-hidden flex flex-col relative"
+            >
+                <button 
+                    onClick={onClose}
+                    className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center bg-white rounded-full text-stone-500 shadow-sm"
+                >
+                    <X className="w-5 h-5" />
+                </button>
+
+                <div className="bg-red-700 text-white p-6 text-center shadow-inner relative overflow-hidden">
+                    <h2 className="text-2xl font-black italic tracking-wide uppercase relative z-10">Hungry Dragon</h2>
+                    <p className="text-red-100 text-sm font-medium relative z-10">Sudden Death Mini-Game</p>
+                </div>
+
+                <div className="p-6 flex-1 flex flex-col">
+                    {gameState === 'idle' && (
+                        <div className="flex flex-col items-center justify-center space-y-6 flex-1">
+                            <div className="text-center space-y-2">
+                                <p className="text-stone-700">Catch the <span className="font-bold text-red-600">treats</span>. Avoid the <span className="font-bold">obstacles</span>.</p>
+                                <p className="text-xs text-stone-500 font-medium">Top 3 scores win a free Onigiri!</p>
+                            </div>
+
+                            <input 
+                                type="text"
+                                placeholder="Enter NetID"
+                                value={netId}
+                                onChange={(e) => setNetId(e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl border border-red-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none text-center font-bold text-stone-700 uppercase"
+                                maxLength={10}
+                            />
+                            
+                            <button 
+                                onClick={startGame}
+                                disabled={!netId.trim()}
+                                className="w-full bg-red-600 hover:bg-red-700 disabled:bg-stone-300 text-white font-bold py-3 rounded-xl transition-colors flex justify-center items-center gap-2"
+                            >
+                                <Play className="w-5 h-5 fill-current" /> Play Now
+                            </button>
+
+                            <div className="w-full mt-4 bg-white rounded-xl p-4 shadow-sm border border-red-100">
+                                <div className="flex items-center gap-2 mb-3 text-red-700 font-bold justify-center">
+                                    <Trophy className="w-4 h-4" /> Leaderboard
+                                </div>
+                                {highScores.length === 0 ? (
+                                    <p className="text-center text-stone-400 text-sm">No scores yet. Be the first!</p>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {highScores.map((hs, i) => (
+                                            <div key={hs.id} className="flex justify-between items-center bg-red-50 px-3 py-2 rounded-lg text-sm">
+                                                <div className="flex items-center gap-3">
+                                                    <span className={`font-black ${i === 0 ? 'text-amber-500' : 'text-stone-400'}`}>#{i + 1}</span>
+                                                    <span className="font-bold text-stone-700 uppercase">{hs.netId}</span>
+                                                </div>
+                                                <span className="font-black text-red-600">{hs.score}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {gameState === 'playing' && (
+                        <div className="flex flex-col items-center flex-1">
+                            <div className="text-4xl font-black text-red-600 mb-6 drop-shadow-sm">{score}</div>
+                            
+                            <div className="grid grid-cols-3 gap-3 w-full max-w-[300px]">
+                                {[0, 1, 2, 3, 4, 5, 6, 7, 8].map(index => {
+                                    const isActive = activeItem?.index === index;
+                                    return (
+                                        <button 
+                                            key={index}
+                                            onClick={() => handleTap(index)}
+                                            className="w-full aspect-square bg-white rounded-2xl shadow-inner border-b-4 border-r-4 border-red-200 active:border-b-0 active:border-r-0 active:translate-y-1 active:translate-x-1 relative overflow-hidden flex items-center justify-center transition-all touch-manipulation"
+                                        >
+                                            {/* Water styling */}
+                                            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-blue-50 z-0"></div>
+                                            
+                                            <AnimatePresence mode="popLayout">
+                                                {isActive && (
+                                                    <motion.div
+                                                        key={activeItem.id}
+                                                        initial={{ y: 50, opacity: 0 }}
+                                                        animate={{ y: 0, opacity: 1 }}
+                                                        exit={{ y: 50, opacity: 0 }}
+                                                        transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                                                        className="relative z-10 w-12 h-12 flex items-center justify-center"
+                                                    >
+                                                        {activeItem.type === 'onigiri' && <div className="w-10 h-10"><OnigiriIcon /></div>}
+                                                        {activeItem.type === 'eggtart' && <div className="w-10 h-10"><EggTartIcon /></div>}
+                                                        {(activeItem.type === 'crab' || activeItem.type === 'buoy') && (
+                                                            <BadItemGraphic type={activeItem.type} />
+                                                        )}
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </button>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {gameState === 'gameover' && (
+                        <div className="flex flex-col items-center justify-center space-y-6 flex-1 text-center">
+                            <div className="text-6xl mb-2">💦</div>
+                            <h3 className="text-3xl font-black text-stone-800">GAME OVER</h3>
+                            <div className="bg-white px-8 py-6 rounded-2xl shadow-sm border border-red-100">
+                                <p className="text-stone-500 font-medium mb-1">Final Score</p>
+                                <p className="text-5xl font-black text-red-600">{score}</p>
+                            </div>
+                            
+                            <button 
+                                onClick={startGame}
+                                className="w-full bg-stone-800 hover:bg-stone-900 text-white font-bold py-3 rounded-xl transition-colors flex justify-center items-center gap-2"
+                            >
+                                Play Again
+                            </button>
+                            
+                            <button 
+                                onClick={() => setGameState('idle')}
+                                className="text-stone-500 font-bold hover:text-stone-700 transition-colors"
+                            >
+                                View Leaderboard
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </motion.div>
+        </div>
+    );
+}

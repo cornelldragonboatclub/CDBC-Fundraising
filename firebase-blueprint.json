@@ -1,0 +1,30 @@
+{
+  "entities": {
+    "LeaderboardEntry": {
+      "title": "Leaderboard Entry",
+      "description": "Represents a high score entry in the Hungry Dragon game.",
+      "type": "object",
+      "properties": {
+        "netId": {
+          "type": "string",
+          "description": "The Cornell NetID of the player"
+        },
+        "score": {
+          "type": "integer",
+          "description": "The score achieved by the player."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of when the score was achieved."
+        }
+      },
+      "required": ["netId", "score", "createdAt"]
+    }
+  },
+  "firestore": {
+    "leaderboard/{entryId}": {
+      "schema": "LeaderboardEntry",
+      "description": "Stores user scores for the Hungry Dragon mini-game."
+    }
+  }
+}
