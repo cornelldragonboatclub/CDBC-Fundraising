@@ -25,6 +25,7 @@ export default function OnigiriEggTarts() {
     const [isFormOpen, setIsFormOpen] = useState<boolean | null>(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isGameOpen, setIsGameOpen] = useState(false);
+    const [targetScore, setTargetScore] = useState<number | undefined>(undefined);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({
         fullName: '',
@@ -99,6 +100,15 @@ export default function OnigiriEggTarts() {
                 setIsFormOpen(true);
             }
         };
+
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('play') === 'dragon') {
+            setIsGameOpen(true);
+            const target = params.get('target');
+            if (target) {
+                setTargetScore(parseInt(target, 10));
+            }
+        }
         
         checkFormStatus();
         const t = setTimeout(() => setIsLoading(false), 100);
@@ -246,7 +256,7 @@ export default function OnigiriEggTarts() {
 
             <AnimatePresence>
                 {isGameOpen && (
-                    <HungryDragonGame onClose={() => setIsGameOpen(false)} />
+                    <HungryDragonGame onClose={() => setIsGameOpen(false)} targetScore={targetScore} />
                 )}
             </AnimatePresence>
 
@@ -416,7 +426,7 @@ export default function OnigiriEggTarts() {
                             </section>
 
                             {/* Order Selection */}
-                            <section className="space-y-4" ref={treatsRef}>
+                            <section className="space-y-4 scroll-mt-64" ref={treatsRef} id="order-section">
                                 <h2 className="text-lg font-bold border-b border-stone-100 pb-2 flex items-center">
                                     <span className="w-1.5 h-1.5 rounded-full bg-red-600 mr-2"></span>
                                     2. Choose Your Treats

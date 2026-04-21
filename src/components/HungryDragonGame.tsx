@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, X, Play, Loader2 } from 'lucide-react';
+import { Trophy, X, Play, Loader2, Sword, Check } from 'lucide-react';
 import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import OnigiriIcon from './OnigiriIcon';
@@ -8,13 +8,15 @@ import EggTartIcon from './EggTartIcon';
 
 interface HungryDragonGameProps {
     onClose: () => void;
+    targetScore?: number;
 }
 
-export default function HungryDragonGame({ onClose }: HungryDragonGameProps) {
+export default function HungryDragonGame({ onClose, targetScore }: HungryDragonGameProps) {
     const [gameState, setGameState] = useState<'idle' | 'playing' | 'gameover'>('idle');
     const [netId, setNetId] = useState('');
     const [score, setScore] = useState(0);
     const [highScores, setHighScores] = useState<{ id: string, netId: string, score: number }[]>([]);
+    const [isCopied, setIsCopied] = useState(false);
     
     // Grid slot 0-8. Null if nothing is active.
     const [activeItem, setActiveItem] = useState<{ index: number, type: 'onigiri' | 'eggtart' | 'crab' | 'buoy', id: string } | null>(null);
@@ -127,6 +129,53 @@ export default function HungryDragonGame({ onClose }: HungryDragonGameProps) {
         return <div className="text-4xl drop-shadow-md select-none leading-none flex items-center justify-center">{emoji}</div>;
     };
 
+    const handleChallenge = async () => {
+        const shareUrl = `${window.location.origin}${window.location.pathname}?play=dragon&target=${score}`;
+        const shareData = {
+            title: 'Hungry Dragon Challenge',
+            text: `I just scored ${score} in the Hungry Dragon mini-game! 🐉 Think you can beat me?`,
+            url: shareUrl
+        };
+
+        if (navigator.share && /mobile|android|iphone|ipad|ipod/i.test(navigator.userAgent)) {
+            try {
+                await navigator.share(shareData);
+            } catch (err) {
+                console.error('Error sharing', err);
+                fallbackCopy(shareUrl);
+            }
+        } else {
+            fallbackCopy(shareUrl);
+        }
+    };
+
+    const fallbackCopy = (url: string) => {
+        const text = `I just scored ${score} in the Hungry Dragon mini-game! 🐉 Think you can beat me? Play here: ${url}`;
+        navigator.clipboard.writeText(text).then(() => {
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000);
+        });
+    };
+
+    const getScoreMessage = (s: number) => {
+        if (s === 0) return "The dragon starved... guarantee your survival by ordering below! 🐉";
+        if (s > 0 && s <= 10) return "Not bad, but you look hungry. Treat yourself to the real deal!";
+        if (s > 10 && s <= 20) return "Great reflexes! You've earned a real-life Egg Tart.";
+        if (s > 20 && s <= 30) return "Dragon-slayer status! Time to celebrate with a real Onigiri.";
+        if (s > 30 && s < 40) return "Are you a machine?! At this point, you deserve the whole menu.";
+        return "Buddy, just buy 1 atp.";
+    };
+
+    const handleOrderClick = () => {
+        onClose();
+        setTimeout(() => {
+            const orderSection = document.getElementById('order-section');
+            if (orderSection) {
+                orderSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 300);
+    };
+
     return (
         <div className="fixed inset-0 z-50 bg-stone-900/80 backdrop-blur-sm flex items-center justify-center p-4">
             <motion.div 
@@ -143,14 +192,20 @@ export default function HungryDragonGame({ onClose }: HungryDragonGameProps) {
 
                 <div className="bg-red-700 text-white p-6 text-center shadow-inner relative overflow-hidden">
                     <h2 className="text-2xl font-black italic tracking-wide uppercase relative z-10">Hungry Dragon</h2>
-                    <p className="text-red-100 text-sm font-medium relative z-10">Sudden Death Mini-Game</p>
+                    <p className="text-red-100 text-sm font-medium relative z-10">Win a FREE Onigiri</p>
                 </div>
 
                 <div className="p-6 flex-1 flex flex-col">
                     {gameState === 'idle' && (
                         <div className="flex flex-col items-center justify-center space-y-6 flex-1">
                             <div className="text-center space-y-2">
-                                <p className="text-stone-700">Catch the <span className="font-bold text-red-600">treats</span>. Avoid the <span className="font-bold">obstacles</span>.</p>
+                                {targetScore ? (
+                                    <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-3 rounded-xl shadow-sm font-bold animate-pulse inline-block mb-2">
+                                        ⚔️ Someone challenged you to beat {targetScore}!
+                                    </div>
+                                ) : (
+                                    <p className="text-stone-700">Catch the <span className="font-bold text-red-600">treats</span>. Avoid the <span className="font-bold">obstacles</span>.</p>
+                                )}
                                 <p className="text-xs text-stone-500 font-medium">Top 3 scores win a free Onigiri!</p>
                             </div>
 
@@ -236,20 +291,40 @@ export default function HungryDragonGame({ onClose }: HungryDragonGameProps) {
                     )}
 
                     {gameState === 'gameover' && (
-                        <div className="flex flex-col items-center justify-center space-y-6 flex-1 text-center">
-                            <div className="text-6xl mb-2">💦</div>
+                        <div className="flex flex-col items-center justify-center space-y-4 flex-1 text-center">
                             <h3 className="text-3xl font-black text-stone-800">GAME OVER</h3>
-                            <div className="bg-white px-8 py-6 rounded-2xl shadow-sm border border-red-100">
+                            <div className="bg-white px-8 py-5 rounded-2xl shadow-sm border border-red-100">
                                 <p className="text-stone-500 font-medium mb-1">Final Score</p>
                                 <p className="text-5xl font-black text-red-600">{score}</p>
                             </div>
                             
-                            <button 
-                                onClick={startGame}
-                                className="w-full bg-stone-800 hover:bg-stone-900 text-white font-bold py-3 rounded-xl transition-colors flex justify-center items-center gap-2"
-                            >
-                                Play Again
-                            </button>
+                            <p className="text-sm font-bold text-stone-600 px-4 bg-stone-100 py-3 rounded-xl border border-stone-200">
+                                {getScoreMessage(score)}
+                            </p>
+                            
+                            <div className="w-full space-y-3 pt-2">
+                                <button 
+                                    onClick={handleOrderClick}
+                                    className="w-full bg-red-600 hover:bg-red-700 text-white font-black py-3.5 rounded-xl transition-colors shadow-md border-b-4 border-red-800 active:border-b-0 active:translate-y-1"
+                                >
+                                    Hungry for real? Build your order!
+                                </button>
+                                
+                                <button 
+                                    onClick={handleChallenge}
+                                    className="w-full bg-yellow-400 hover:bg-yellow-500 text-stone-900 font-bold py-3 rounded-xl transition-colors flex justify-center items-center gap-2 shadow-sm"
+                                >
+                                    {isCopied ? <Check className="w-5 h-5"/> : <Sword className="w-5 h-5"/>} 
+                                    {isCopied ? "Copied to clipboard!" : "Challenge a Friend"}
+                                </button>
+                                
+                                <button 
+                                    onClick={startGame}
+                                    className="w-full bg-stone-800 hover:bg-stone-900 text-white font-bold py-3 rounded-xl transition-colors flex justify-center items-center gap-2"
+                                >
+                                    Play Again
+                                </button>
+                            </div>
                             
                             <button 
                                 onClick={() => setGameState('idle')}
