@@ -1,6 +1,11 @@
 # Development Log - Cornell Dragon Boat Fundraiser App
 
-## [2026-04-24] - Onigiri Pricing Update & Multi-referral System
+## [2026-04-24] - Onigiri Pricing Update, Multi-referral System & Game Enhancements
+- **Hungry Dragon Game Refresh**:
+  - Replaced the crab obstacle with a custom Sailboat SVG icon.
+  - Added a new Buoy SVG icon as an obstacle.
+  - Redesigned the Game Start Screen with a clear "Treats" vs "Obstacles" instruction grid.
+  - Updated gameplay text to clarify objectives ("Catch the treats", "Avoid the obstacles").
 - **Onigiri Pricing Adjustment**:
   - Updated Onigiri pricing to $4.00 for a single and $7.00 for a 2-pack (previously $3.00/$7.00 for 1/3).
   - Refactored the UI and logic to transition from "3-pack" bundles to "2-pack" bundles for Onigiri.

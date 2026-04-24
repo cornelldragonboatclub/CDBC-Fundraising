@@ -5,6 +5,8 @@ import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp 
 import { db } from '../lib/firebase';
 import OnigiriIcon from './OnigiriIcon';
 import EggTartIcon from './EggTartIcon';
+import BuoyIcon from './BuoyIcon';
+import SailboatIcon from './SailboatIcon';
 
 interface HungryDragonGameProps {
     onClose: () => void;
@@ -19,7 +21,7 @@ export default function HungryDragonGame({ onClose, targetScore }: HungryDragonG
     const [isCopied, setIsCopied] = useState(false);
     
     // Grid slot 0-8. Null if nothing is active.
-    const [activeItem, setActiveItem] = useState<{ index: number, type: 'onigiri' | 'eggtart' | 'crab' | 'buoy', id: string } | null>(null);
+    const [activeItem, setActiveItem] = useState<{ index: number, type: 'onigiri' | 'eggtart' | 'boat' | 'buoy', id: string } | null>(null);
 
     const timerRef = useRef<NodeJS.Timeout | null>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -75,14 +77,14 @@ export default function HungryDragonGame({ onClose, targetScore }: HungryDragonG
         const visibleTime = Math.max(300, 1500 - (currentScore * 30));
 
         timerRef.current = setTimeout(() => {
-            const types: ('onigiri' | 'eggtart' | 'crab' | 'buoy')[] = ['onigiri', 'eggtart', 'crab', 'buoy'];
+            const types: ('onigiri' | 'eggtart' | 'boat' | 'buoy')[] = ['onigiri', 'eggtart', 'boat', 'buoy'];
             // As score goes up, slightly higher chance for bad items, but keep good items common
             const isBad = Math.random() < 0.3; 
             let selectedType = types[0];
             if (isBad) {
-                selectedType = types[Math.floor(Math.random() * 2) + 2]; // index 2, 3
+                selectedType = types[Math.floor(Math.random() * 2) + 2]; // index 2, 3 (boat, buoy)
             } else {
-                selectedType = types[Math.floor(Math.random() * 2)]; // index 0, 1
+                selectedType = types[Math.floor(Math.random() * 2)]; // index 0, 1 (onigiri, eggtart)
             }
 
             const item = {
@@ -118,15 +120,14 @@ export default function HungryDragonGame({ onClose, targetScore }: HungryDragonG
             setScore(newScore);
             spawnNextItem(newScore);
         } else {
-            // Bad Tap (Crab, Buoy)
+            // Bad Tap (Boat, Buoy)
             endGame(score);
         }
     };
 
-    const BadItemGraphic = ({ type }: { type: 'crab' | 'buoy' }) => {
-        let emoji = '🦀';
-        if (type === 'buoy') emoji = '🛟';
-        return <div className="text-4xl drop-shadow-md select-none leading-none flex items-center justify-center">{emoji}</div>;
+    const BadItemGraphic = ({ type }: { type: 'boat' | 'buoy' }) => {
+        if (type === 'buoy') return <div className="w-10 h-10"><BuoyIcon /></div>;
+        return <div className="w-10 h-10"><SailboatIcon /></div>;
     };
 
     const handleChallenge = async () => {
@@ -158,11 +159,11 @@ export default function HungryDragonGame({ onClose, targetScore }: HungryDragonG
     };
 
     const getScoreMessage = (s: number) => {
-        if (s === 0) return "The dragon starved... guarantee your survival by ordering below! 🐉";
+        if (s === 0) return "The dragon starved... guarantee your survival by ordering below!";
         if (s > 0 && s <= 10) return "Not bad, but you look hungry. Treat yourself to the real deal!";
-        if (s > 10 && s <= 20) return "Great reflexes! You've earned a real-life Egg Tart.";
-        if (s > 20 && s <= 30) return "Dragon-slayer status! Time to celebrate with a real Onigiri.";
-        if (s > 30 && s < 40) return "Are you a machine?! At this point, you deserve the whole menu.";
+        if (s > 10 && s <= 20) return "Great reflexes! But reach top 3 to win a FREE onigiri!";
+        if (s > 20 && s <= 30) return "Ur cooking! Time to celebrate with a real Onigiri.";
+        if (s > 30 && s < 40) return "Godly";
         return "Buddy, just buy 1 atp.";
     };
 
@@ -198,25 +199,44 @@ export default function HungryDragonGame({ onClose, targetScore }: HungryDragonG
                 <div className="p-6 flex-1 flex flex-col">
                     {gameState === 'idle' && (
                         <div className="flex flex-col items-center justify-center space-y-6 flex-1">
-                            <div className="text-center space-y-2">
-                                {targetScore ? (
-                                    <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-3 rounded-xl shadow-sm font-bold animate-pulse inline-block mb-2">
-                                        ⚔️ Someone challenged you to beat {targetScore}!
+                            {targetScore && (
+                                <div className="bg-yellow-100 border border-yellow-300 text-yellow-800 px-4 py-3 rounded-xl shadow-sm font-bold animate-pulse inline-block mb-2 text-center w-full">
+                                    ⚔️ Someone challenged you to beat {targetScore}!
+                                </div>
+                            )}
+
+                            <div className="w-full grid grid-cols-2 gap-3 px-2">
+                                {/* Treats Column */}
+                                <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-green-100 flex flex-col items-center text-center shadow-sm">
+                                    <span className="text-[10px] font-black text-green-600 uppercase tracking-widest mb-3 italic">Treats</span>
+                                    <div className="flex gap-2 mb-3">
+                                        <div className="w-10 h-10 drop-shadow-sm"><OnigiriIcon /></div>
+                                        <div className="w-10 h-10 drop-shadow-sm"><EggTartIcon /></div>
                                     </div>
-                                ) : (
-                                    <p className="text-stone-700">Catch the <span className="font-bold text-red-600">treats</span>. Avoid the <span className="font-bold">obstacles</span>.</p>
-                                )}
-                                <p className="text-xs text-stone-500 font-medium">Top 3 scores win a free Onigiri!</p>
+                                    <p className="text-[11px] font-bold text-stone-600 leading-tight">Catch the<br/>treats.</p>
+                                </div>
+                                {/* Obstacles Column */}
+                                <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 border border-red-100 flex flex-col items-center text-center shadow-sm">
+                                    <span className="text-[10px] font-black text-red-600 uppercase tracking-widest mb-3 italic">Obstacles</span>
+                                    <div className="flex gap-2 mb-3">
+                                        <div className="w-10 h-10 drop-shadow-sm"><BuoyIcon /></div>
+                                        <div className="w-10 h-10 drop-shadow-sm"><SailboatIcon /></div>
+                                    </div>
+                                    <p className="text-[11px] font-bold text-stone-600 leading-tight">Avoid the<br/>obstacles.</p>
+                                </div>
                             </div>
 
-                            <input 
-                                type="text"
-                                placeholder="Enter NetID"
-                                value={netId}
-                                onChange={(e) => setNetId(e.target.value)}
-                                className="w-full px-4 py-3 rounded-xl border border-red-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none text-center font-bold text-stone-700 uppercase"
-                                maxLength={10}
-                            />
+                            <div className="w-full flex-col items-center space-y-3">
+                                <p className="text-center text-[10px] text-stone-400 font-black uppercase tracking-widest">Top 3 scores win a free Onigiri! 🥡</p>
+                                <input 
+                                    type="text"
+                                    placeholder="Enter NetID"
+                                    value={netId}
+                                    onChange={(e) => setNetId(e.target.value)}
+                                    className="w-full px-4 py-3 rounded-xl border border-red-200 focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none text-center font-bold text-stone-700 uppercase"
+                                    maxLength={10}
+                                />
+                            </div>
                             
                             <button 
                                 onClick={startGame}
@@ -245,6 +265,9 @@ export default function HungryDragonGame({ onClose, targetScore }: HungryDragonG
                                         ))}
                                     </div>
                                 )}
+                                <p className="mt-4 pt-3 border-t border-red-50 text-[10px] text-red-500 font-bold text-center uppercase tracking-wider leading-relaxed">
+                                    Free onigiri for top 3 by<br/>Tuesday (4/28) @ 10 AM!
+                                </p>
                             </div>
                         </div>
                     )}
@@ -277,7 +300,7 @@ export default function HungryDragonGame({ onClose, targetScore }: HungryDragonG
                                                     >
                                                         {activeItem.type === 'onigiri' && <div className="w-10 h-10"><OnigiriIcon /></div>}
                                                         {activeItem.type === 'eggtart' && <div className="w-10 h-10"><EggTartIcon /></div>}
-                                                        {(activeItem.type === 'crab' || activeItem.type === 'buoy') && (
+                                                        {(activeItem.type === 'boat' || activeItem.type === 'buoy') && (
                                                             <BadItemGraphic type={activeItem.type} />
                                                         )}
                                                     </motion.div>

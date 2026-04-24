@@ -486,6 +486,23 @@ export default function OnigiriEggTarts() {
                                         );
                                     })}
                                 </div>
+                                
+                                <div className="mt-4 p-3.5 bg-stone-50/50 border border-stone-100 rounded-2xl self-stretch">
+                                    <h3 className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-2 flex items-center">
+                                        <span className="w-1 h-1 rounded-full bg-stone-300 mr-1.5"></span>
+                                        Ingredients
+                                    </h3>
+                                    <div className="space-y-1.5">
+                                        <p className="text-[11px] leading-relaxed text-stone-500">
+                                            <span className="font-bold text-stone-700 text-[10px] uppercase tracking-tight mr-1">Onigiri:</span> rice, tuna, mayo, seaweed, soy sauce
+                                        </p>
+                                        <div className="h-[1px] w-full bg-stone-100 my-1 opacity-50"></div>
+                                        <p className="text-[11px] leading-relaxed text-stone-500">
+                                            <span className="font-bold text-stone-700 text-[10px] uppercase tracking-tight mr-1">Egg tart:</span> flour, butter, sugar, egg, milk
+                                        </p>
+                                    </div>
+                                </div>
+
                                 {errors.quantity && <p className="text-sm text-red-500 text-center font-bold">{errors.quantity}</p>}
                             </section>
 
