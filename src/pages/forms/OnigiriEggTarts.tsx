@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { Home, Share, ChevronDown, ArrowUpDown, Copy, Check, ExternalLink, Gamepad2 } from 'lucide-react';
+import { Home, Share, ChevronDown, ArrowUpDown, Copy, Check, ExternalLink, Gamepad2, ArrowUp } from 'lucide-react';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import TriangleGrid from '../../components/TriangleGrid';
 import OnigiriIcon from '../../components/OnigiriIcon';
@@ -280,6 +280,13 @@ export default function OnigiriEggTarts() {
                     >
                         <Gamepad2 size={24} />
                     </button>
+                    <motion.div 
+                        animate={{ y: [0, -3, 0], opacity: [0.7, 1, 0.7] }} 
+                        transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                        className="absolute top-[calc(50%+16px)] right-[21px] text-yellow-300 pointer-events-none"
+                    >
+                        <ArrowUp size={14} strokeWidth={3} />
+                    </motion.div>
                 </div>
 
                 {isFormOpen === false ? (
