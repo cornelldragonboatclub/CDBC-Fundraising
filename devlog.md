@@ -1,5 +1,20 @@
 # Development Log - Cornell Dragon Boat Fundraiser App
 
+## [2026-04-24] - Onigiri Pricing Update & Multi-referral System
+- **Onigiri Pricing Adjustment**:
+  - Updated Onigiri pricing to $4.00 for a single and $7.00 for a 2-pack (previously $3.00/$7.00 for 1/3).
+  - Refactored the UI and logic to transition from "3-pack" bundles to "2-pack" bundles for Onigiri.
+  - Adjusted "Better Deal" strike-through pricing to reflect the new discount ($7.00 vs ~~$8.00~~).
+- **Multi-Select Referral System**:
+  - Replaced the single-choice referral dropdown with a multi-select checkbox grid for better user experience.
+  - Updated the form state and submission payload to support multiple selected members.
+  - **Admin Dashboard Updates**:
+    - Enhanced the Admin view to handle array-based referral data.
+    - Updated CSV export and summary statistics to correctly aggregate and display multiple referrals per order.
+- **UI & Logic Consistency**:
+  - Renamed internal data keys (e.g., `onigiri_3` to `onigiri_2`) to match the new bundle size.
+  - Updated the "Ordered Items" visualization to correctly display 2 Onigiri when a bundle is selected.
+
 ## [2026-04-21] - Advanced Admin Dashboard & Itemized Reporting
 - **Itemized Unit Breakdown**: The Admin Dashboard now automatically calculates and displays total individual units ordered for any fundraiser.
   - For "Onigiri & Egg Tarts", it sums single items and 3-packs (e.g., 1 bundle of 3 = 3 units).
