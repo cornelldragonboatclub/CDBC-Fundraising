@@ -179,7 +179,7 @@ export default function Admin() {
         if (formId === 'onigiri-egg-tarts') {
             const items = sub.items || {};
             return {
-                'Onigiri': (items.onigiri_single || 0) + ((items.onigiri_triple || 0) * 3),
+                'Onigiri': (items.onigiri_single || 0) + ((items.onigiri_double || 0) * 2) + ((items.onigiri_triple || 0) * 3),
                 'Egg Tarts': (items.egg_tart_single || 0) + ((items.egg_tart_triple || 0) * 3)
             };
         }
@@ -262,7 +262,13 @@ export default function Admin() {
             });
 
             if (sub.referrals) {
-                const refs = sub.referrals.split(',').map((r: string) => r.trim()).filter(Boolean);
+                let refs: string[] = [];
+                if (Array.isArray(sub.referrals)) {
+                    refs = sub.referrals;
+                } else if (typeof sub.referrals === 'string') {
+                    refs = sub.referrals.split(',').map((r: string) => r.trim()).filter(Boolean);
+                }
+                
                 refs.forEach((r: string) => {
                     const key = r.toLowerCase();
                     if (!refCounts[key]) refCounts[key] = { name: r, count: 0 };
@@ -303,7 +309,7 @@ export default function Admin() {
                 ...itemCells,
                 sub.totalCost,
                 `"${sub.paymentId}"`,
-                `"${sub.referrals || ''}"`,
+                `"${Array.isArray(sub.referrals) ? sub.referrals.join(', ') : (sub.referrals || '')}"`,
                 sub.paid ? 'Yes' : 'No',
                 sub.pickedUp ? 'Yes' : 'No',
                 `"${sub.adminNotes || ''}"`
@@ -697,7 +703,13 @@ export default function Admin() {
                                                     <td className="p-4 text-sm">
                                                         <div><span className="text-stone-400">NetID:</span> {sub.netId}</div>
                                                         <div><span className="text-stone-400">Pay:</span> {sub.paymentId}</div>
-                                                        {sub.referrals && <div><span className="text-stone-400">Ref:</span> {sub.referrals}</div>}
+                                                        {sub.referrals && (
+                                                            <div>
+                                                                <span className="text-stone-400">Ref:</span> {
+                                                                    Array.isArray(sub.referrals) ? sub.referrals.join(', ') : sub.referrals
+                                                                }
+                                                            </div>
+                                                        )}
                                                     </td>
                                                     <td className="p-4 text-center">
                                                         <button 

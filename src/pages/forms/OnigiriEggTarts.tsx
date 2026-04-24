@@ -8,9 +8,9 @@ import EggTartIcon from '../../components/EggTartIcon';
 import HungryDragonGame from '../../components/HungryDragonGame';
 
 const PRICING = {
-    onigiri_1: 3,
+    onigiri_1: 4,
     egg_tart_1: 3,
-    onigiri_3: 7,
+    onigiri_2: 7,
     egg_tart_3: 7
 };
 // ... rest of the file stays same, just update the jsx usage
@@ -32,9 +32,9 @@ export default function OnigiriEggTarts() {
         email: '',
         onigiri_1: 0,
         egg_tart_1: 0,
-        onigiri_3: 0,
+        onigiri_2: 0,
         egg_tart_3: 0,
-        referral: '',
+        referrals: [] as string[],
         otherReferral: '',
         pickupAgreement: false
     });
@@ -43,12 +43,12 @@ export default function OnigiriEggTarts() {
 
     const totalCost = (formData.onigiri_1 * PRICING.onigiri_1) + 
                       (formData.egg_tart_1 * PRICING.egg_tart_1) + 
-                      (formData.onigiri_3 * PRICING.onigiri_3) + 
+                      (formData.onigiri_2 * PRICING.onigiri_2) + 
                       (formData.egg_tart_3 * PRICING.egg_tart_3);
 
     const totalQuantity = (formData.onigiri_1 * 1) + 
                          (formData.egg_tart_1 * 1) + 
-                         (formData.onigiri_3 * 3) + 
+                         (formData.onigiri_2 * 2) + 
                          (formData.egg_tart_3 * 3);
 
     const treatsRef = useRef<HTMLDivElement>(null);
@@ -56,7 +56,7 @@ export default function OnigiriEggTarts() {
 
     const orderedItems = useMemo(() => {
         const items = [];
-        const onigiriCount = (formData.onigiri_1 * 1) + (formData.onigiri_3 * 3);
+        const onigiriCount = (formData.onigiri_1 * 1) + (formData.onigiri_2 * 2);
         const eggTartCount = (formData.egg_tart_1 * 1) + (formData.egg_tart_3 * 3);
         
         // Use a deterministic pileIndex (evens for onigiri, odds for egg tarts)
@@ -120,7 +120,7 @@ export default function OnigiriEggTarts() {
         if (!formData.fullName.trim()) newErrors.fullName = "Name is required";
         if (!formData.email.trim()) newErrors.email = "Email is required";
         if (totalQuantity <= 0) newErrors.quantity = "Please select at least one item";
-        if (formData.referral === 'Other' && !formData.otherReferral.trim()) newErrors.otherReferral = "Please specify";
+        if (formData.referrals.includes('Other') && !formData.otherReferral.trim()) newErrors.otherReferral = "Please specify";
         if (!formData.pickupAgreement) newErrors.pickupAgreement = "You must agree to the pickup terms";
         
         setErrors(newErrors);
@@ -133,19 +133,19 @@ export default function OnigiriEggTarts() {
 
         setIsSubmitting(true);
         try {
-            const finalReferral = formData.referral === 'Other' ? formData.otherReferral : formData.referral;
+            const selectedReferrals = formData.referrals.map(r => r === 'Other' ? formData.otherReferral : r);
             const payload = {
                 fullName: formData.fullName,
                 email: formData.email,
                 quantity: totalQuantity, // Required by backend
                 items: {
                     onigiri_single: formData.onigiri_1,
-                    onigiri_triple: formData.onigiri_3,
+                    onigiri_double: formData.onigiri_2,
                     egg_tart_single: formData.egg_tart_1,
                     egg_tart_triple: formData.egg_tart_3
                 },
                 totalCost,
-                referrals: finalReferral,
+                referrals: selectedReferrals,
                 formId: 'onigiri-egg-tarts',
                 timestamp: new Date().toISOString()
             };
@@ -434,12 +434,13 @@ export default function OnigiriEggTarts() {
                                 
                                 <div className="grid grid-cols-2 gap-4">
                                     {[
-                                        { id: 'onigiri_1', name: '1 Onigiri', price: 3 },
-                                        { id: 'onigiri_3', name: '3 Onigiri', price: 7 },
+                                        { id: 'onigiri_1', name: '1 Onigiri', price: 4 },
+                                        { id: 'onigiri_2', name: '2 Onigiri', price: 7 },
                                         { id: 'egg_tart_1', name: '1 Egg Tart', price: 3 },
                                         { id: 'egg_tart_3', name: '3 Egg Tarts', price: 7 }
                                     ].map(item => {
-                                        const isBundle = item.id.includes('_3');
+                                        const isBundle = item.id.includes('_2') || item.id.includes('_3');
+                                        const originalPrice = item.id === 'onigiri_2' ? 8 : 9;
                                         return (
                                             <div 
                                                 key={item.id} 
@@ -453,7 +454,7 @@ export default function OnigiriEggTarts() {
                                                 <p className="font-bold text-stone-800 text-sm mb-1">{item.name}</p>
                                                 <div className="flex items-center gap-1.5 mb-3">
                                                     {isBundle && (
-                                                        <span className="text-[10px] text-stone-400 line-through font-bold leading-none">$9.00</span>
+                                                        <span className="text-[10px] text-stone-400 line-through font-bold leading-none">${originalPrice}.00</span>
                                                     )}
                                                     <p className="text-xs text-red-600 font-black leading-none">${item.price}.00</p>
                                                 </div>
@@ -488,23 +489,36 @@ export default function OnigiriEggTarts() {
                                     3. Referral
                                 </h2>
                                 <div className="space-y-4">
-                                    <div className="relative">
-                                        <label className="block text-xs font-bold text-stone-400 uppercase tracking-wider mb-1">Who referred you? (optional)</label>
-                                        <div className="relative">
-                                            <select 
-                                                value={formData.referral}
-                                                onChange={e => setFormData({...formData, referral: e.target.value})}
-                                                className={`w-full appearance-none border-2 ${errors.referral ? 'border-red-200 bg-red-50' : 'border-stone-50 bg-stone-50'} rounded-2xl px-4 py-3 pr-10 outline-none focus:border-red-100 focus:bg-white transition-all`}
-                                            >
-                                                <option value="">Select a member</option>
-                                                {REFERRAL_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                            </select>
-                                            <ChevronDown size={18} className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none text-stone-400" />
+                                    <div>
+                                        <label className="block text-xs font-bold text-stone-400 uppercase tracking-wider mb-3">Who referred you? (optional)</label>
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                            {REFERRAL_OPTIONS.map(opt => (
+                                                <label 
+                                                    key={opt}
+                                                    className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all cursor-pointer ${
+                                                        formData.referrals.includes(opt) 
+                                                        ? 'bg-red-50 border-red-200 text-red-700 font-bold' 
+                                                        : 'bg-stone-50 border-stone-50 text-stone-600 hover:border-stone-200'
+                                                    }`}
+                                                >
+                                                    <input 
+                                                        type="checkbox"
+                                                        className="hidden"
+                                                        checked={formData.referrals.includes(opt)}
+                                                        onChange={(e) => {
+                                                            const newRefs = e.target.checked 
+                                                                ? [...formData.referrals, opt]
+                                                                : formData.referrals.filter(r => r !== opt);
+                                                            setFormData({...formData, referrals: newRefs});
+                                                        }}
+                                                    />
+                                                    <span className="text-xs">{opt}</span>
+                                                </label>
+                                            ))}
                                         </div>
-                                        {errors.referral && <p className="text-xs text-red-500 mt-1 pl-1">{errors.referral}</p>}
                                     </div>
                                     
-                                    {formData.referral === 'Other' && (
+                                    {formData.referrals.includes('Other') && (
                                         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
                                             <input 
                                                 type="text" 
@@ -531,7 +545,7 @@ export default function OnigiriEggTarts() {
                                     </div>
                                     
                                     <AnimatePresence>
-                                        {(formData.onigiri_1 > 0 || formData.onigiri_3 > 0 || formData.egg_tart_1 > 0 || formData.egg_tart_3 > 0) && (
+                                        {(formData.onigiri_1 > 0 || formData.onigiri_2 > 0 || formData.egg_tart_1 > 0 || formData.egg_tart_3 > 0) && (
                                             <motion.div 
                                                 initial={{ height: 0, opacity: 0 }}
                                                 animate={{ height: 'auto', opacity: 1 }}
@@ -542,7 +556,7 @@ export default function OnigiriEggTarts() {
                                                 <div className="space-y-1.5">
                                                     {[
                                                         { name: '1 Onigiri', qty: formData.onigiri_1, price: PRICING.onigiri_1 },
-                                                        { name: '3 Onigiri', qty: formData.onigiri_3, price: PRICING.onigiri_3 },
+                                                        { name: '2 Onigiri', qty: formData.onigiri_2, price: PRICING.onigiri_2 },
                                                         { name: '1 Egg Tart', qty: formData.egg_tart_1, price: PRICING.egg_tart_1 },
                                                         { name: '3 Egg Tarts', qty: formData.egg_tart_3, price: PRICING.egg_tart_3 }
                                                     ].filter(item => item.qty > 0).map(item => (
