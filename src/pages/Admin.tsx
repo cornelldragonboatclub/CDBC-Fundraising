@@ -432,7 +432,7 @@ export default function Admin() {
                                                 <Users size={14} />
                                                 <span className="text-xs font-medium uppercase tracking-wider">Orders</span>
                                             </div>
-                                            <div className="text-2xl font-bold text-stone-800">{stat.totalOrders}</div>
+                                            <div className="text-2xl font-bold text-stone-800">{stat.count}</div>
                                             {/* Item Breakdown */}
                                             {Object.entries(stat.itemBreakdown).length > 0 && (
                                                 <div className="mt-2 pt-2 border-t border-stone-200/50 space-y-0.5">
@@ -474,7 +474,7 @@ export default function Admin() {
                                         <Users size={18} />
                                         <h3 className="font-bold uppercase tracking-wider text-sm">Total Orders</h3>
                                     </div>
-                                    <div className="text-4xl font-bold text-stone-800">{activeStats.totalOrders}</div>
+                                    <div className="text-4xl font-bold text-stone-800">{filteredSubmissions.length}</div>
                                     {/* Breakdown */}
                                     {Object.entries(activeStats.itemBreakdown).length > 0 && (
                                         <div className="mt-4 pt-4 border-t border-stone-100 flex flex-wrap gap-2">

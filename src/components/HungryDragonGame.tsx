@@ -73,8 +73,21 @@ export default function HungryDragonGame({ onClose, targetScore }: HungryDragonG
         setActiveItem(null);
         
         // Pace getting faster
-        const delay = Math.max(100, 800 - (currentScore * 20)); 
-        const visibleTime = Math.max(300, 1500 - (currentScore * 30));
+        let delay, visibleTime;
+        
+        if (currentScore <= 25) {
+            delay = 800 - (currentScore * 20);
+            visibleTime = 1500 - (currentScore * 30);
+        } else {
+            // After 25 points, slow down the difficulty increase so expert players can go further
+            // 800 - (25 * 20) = 300
+            // 1500 - (25 * 30) = 750
+            delay = 300 - ((currentScore - 25) * 5);
+            visibleTime = 750 - ((currentScore - 25) * 10);
+        }
+
+        const finalDelay = Math.max(100, delay);
+        const finalVisibleTime = Math.max(300, visibleTime);
 
         timerRef.current = setTimeout(() => {
             const types: ('onigiri' | 'eggtart' | 'boat' | 'buoy')[] = ['onigiri', 'eggtart', 'boat', 'buoy'];
@@ -103,9 +116,9 @@ export default function HungryDragonGame({ onClose, targetScore }: HungryDragonG
                     // It was a bad item and they ignored it (Good!)
                     spawnNextItem(currentScore);
                 }
-            }, visibleTime);
+            }, finalVisibleTime);
 
-        }, delay);
+        }, finalDelay);
     };
 
     const handleTap = (index: number) => {
@@ -178,25 +191,25 @@ export default function HungryDragonGame({ onClose, targetScore }: HungryDragonG
     };
 
     return (
-        <div className="fixed inset-0 z-50 bg-stone-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-stone-900/90 backdrop-blur-sm flex items-start justify-center p-4 overflow-y-auto">
             <motion.div 
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="bg-red-50 rounded-3xl shadow-xl w-full max-w-md overflow-hidden flex flex-col relative"
+                className="bg-red-50 rounded-3xl shadow-xl w-full max-w-md overflow-hidden flex flex-col relative my-8"
             >
                 <button 
                     onClick={onClose}
-                    className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center bg-white rounded-full text-stone-500 shadow-sm"
+                    className="absolute top-4 right-4 z-30 w-8 h-8 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-full text-stone-500 shadow-md active:scale-95 transition-transform"
                 >
                     <X className="w-5 h-5" />
                 </button>
 
-                <div className="bg-red-700 text-white p-6 text-center shadow-inner relative overflow-hidden">
+                <div className="bg-red-700 text-white p-6 text-center shadow-md relative overflow-hidden shrink-0 z-20">
                     <h2 className="text-2xl font-black italic tracking-wide uppercase relative z-10">Hungry Dragon</h2>
                     <p className="text-red-100 text-sm font-medium relative z-10">Win a FREE Onigiri</p>
                 </div>
 
-                <div className="p-6 flex-1 flex flex-col">
+                <div className="p-6 flex-1 flex flex-col overflow-y-auto max-h-[70vh]">
                     {gameState === 'idle' && (
                         <div className="flex flex-col items-center justify-center space-y-6 flex-1">
                             {targetScore && (
