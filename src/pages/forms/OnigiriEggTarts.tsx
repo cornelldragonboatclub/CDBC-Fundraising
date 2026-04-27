@@ -217,9 +217,9 @@ export default function OnigiriEggTarts() {
                                 </a>
                             </p>
                             <div className="flex items-center justify-start gap-2">
-                                <span>Zelle <strong>415-307-1306</strong></span>
+                                <span>Zelle <strong>4153071306</strong></span>
                                 <button 
-                                    onClick={() => handleCopy("415-307-1306")}
+                                    onClick={() => handleCopy("4153071306")}
                                     className="p-1.5 hover:bg-stone-200 rounded-md transition-colors text-stone-500"
                                     title="Copy number"
                                 >
@@ -602,10 +602,10 @@ export default function OnigiriEggTarts() {
                                             </a>
                                             or Zelle 
                                             <span className="inline-flex items-center bg-white px-1.5 py-0.5 rounded border border-stone-200 ml-1">
-                                                <strong className="mr-1">415-307-1306</strong>
+                                                <strong className="mr-1">4153071306</strong>
                                                 <button 
                                                     type="button"
-                                                    onClick={() => handleCopy("415-307-1306")}
+                                                    onClick={() => handleCopy("4153071306")}
                                                     className="p-1 hover:bg-stone-100 rounded transition-colors"
                                                 >
                                                     {copied ? <Check size={10} className="text-green-600" /> : <Copy size={10} />}

@@ -481,10 +481,10 @@ export default function CheThai() {
                                             </a>
                                             or Zelle 
                                             <span className="inline-flex items-center bg-white px-2 py-1 rounded border border-stone-200 ml-1">
-                                                <strong className="mr-1">415-307-1306</strong>
+                                                <strong className="mr-1">4153071306</strong>
                                                 <button 
                                                     type="button"
-                                                    onClick={() => handleCopy("415-307-1306")}
+                                                    onClick={() => handleCopy("4153071306")}
                                                     className="p-1 hover:bg-stone-100 rounded transition-colors"
                                                 >
                                                     {copied ? <Check size={12} className="text-green-600" /> : <Copy size={12} />}
@@ -533,8 +533,8 @@ export default function CheThai() {
                                         <a href="https://venmo.com/u/hilarykuang" target="_blank" rel="noopener noreferrer" className="text-red-600 font-bold hover:underline mx-1">@HilaryKuang</a> 
                                         or Zelle 
                                         <span className="inline-flex items-center gap-1 mx-1">
-                                            <strong>415-307-1306</strong>
-                                            <button onClick={() => handleCopy("415-307-1306")} className="p-1 hover:bg-stone-100 rounded">
+                                            <strong>4153071306</strong>
+                                            <button onClick={() => handleCopy("4153071306")} className="p-1 hover:bg-stone-100 rounded">
                                                 {copied ? <Check size={12} className="text-green-600" /> : <Copy size={12} />}
                                             </button>
                                         </span>
